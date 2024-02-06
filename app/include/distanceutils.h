@@ -10,9 +10,9 @@
 #ifndef DISTANCEUTILS_H
 #define DISTANCEUTILS_H
 
-#include<distanceutils.h>
+// #include<distanceutils.h>
 
-typedef std::vector<float> (*distanceMethod)(cv::Mat, cv::Mat); 
+typedef double (*distanceMethod)(cv::Mat &src, cv::Mat &target); 
 
 
 /*
@@ -52,13 +52,16 @@ class DistanceFinder{
         std::string targetPath;
         distanceMethod distanceComputer;
         std::vector<float> distances;
-        std::map<std::string, cv::Mat> featureMap;
+        std::map<std::string, std::vector<double>> featureMap;
+        // std::map<std::string, double> distanceMap;
+        std::vector<double> distancesSorted;
+        std::vector<std::string> imPathsDistSorted;
         bool pathOpened(std::string dirname);
         
-
     public:
+    
         // Constructor
-        DistanceFinder(std::string featurePath, std::string targetPath, distanceMethod distanceComputer);
+        DistanceFinder(std::string featurePath, std::string targetPath, std::string distanceMethodKey);
         // Destructor
         // ~DistanceFinder();
 
@@ -70,10 +73,11 @@ class DistanceFinder{
 
         // gets similar images by finding 'numImages' closest feature vectors, and saving
         //corresponding images in ../bin/similarImages/
-        bool getSimilarImages(int numImages);
+        bool getSimilarImages(int numImages, std::string mode);
 
 };
 
 
+double euclideanDistance(cv::Mat &mat1, cv::Mat &mat2);
 
 #endif // DISTANCEUTILS_H

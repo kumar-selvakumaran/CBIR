@@ -51,15 +51,15 @@ int main(int argc, char *argv[]) {
         numImages = atoi(argv[4]);
         
 
-        // distanceMethod funcptr{&subtracttest};
+        distanceMethod funcptr{&euclideanDistance};
 
         // distanceMethod funcptr{getfunc[distanceType]}
 
-        // DistanceFinder dfObject{DistanceFinder(featurePath,  targetPath, funcptr)};
+        DistanceFinder dfObject{DistanceFinder(featurePath,  targetPath, funcptr)};
 
-        // dfObject.computeDistances();
+        dfObject.computeDistances();
 
-        // dfObject.getSimilarImages(numImages);
+        dfObject.getSimilarImages(numImages);
         
         std::cout << "\n\nenter path of new image query : \t";
         std::cin >> featurePath;

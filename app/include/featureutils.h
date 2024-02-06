@@ -9,7 +9,7 @@
 #ifndef FEATUREUTILS_H
 #define FEATUREUTILS_H
 
-#include<featureutils.h>
+// #include<featureutils.h>
 
 typedef std::vector<float> (*featureMethod)(cv::Mat &src); 
 
@@ -67,7 +67,7 @@ class FeatureExtractor{
 
 std::vector<float> addtest(cv::Mat &src);
 std::vector<float> subtracttest(cv::Mat &src);
-std::vector<float> baslineFeatures7x7(cv::Mat &src);
+std::vector<float> baselineFeatures7x7(cv::Mat &src);
 
 
 #endif // FEATUREUTILS_H

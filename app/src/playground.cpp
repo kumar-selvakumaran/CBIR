@@ -10,17 +10,20 @@
 
 // #include <faceDetect.h>
 
+#include <vector>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include <dirent.h>
-#include<distanceutils.h>
 #include <map>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 
 //#### only for testing addtest/subtracttest
-#include<featureutils.h>
+#include <featureutils.h>
+#include <distanceutils.h>
+#include <utils.h>
+
 
 int main(int argc, char *argv[]) {
 
@@ -29,7 +32,50 @@ int main(int argc, char *argv[]) {
     std::ifstream featurecsv(featurePath);
     std::string line;
     int lineNum = 0;
-    std::string imPath;
-    cv.
+    std::string imPath1{"../data/olympus/olympus/pic.0002.jpg"};
+    std::string imPath2{"../data/olympus/olympus/pic.0003.jpg"};
+    std::string targetPath{"../data/olympus/olympus/pic.1016.jpg"};
+
+    // cv::Mat a = cv::imread(targetPath, cv::IMREAD_COLOR);
+    cv::Mat b = cv::imread(imPath2, cv::IMREAD_COLOR);
+    
+    int numImages = 5;
+
+    featureMethod middlecrop{&baselineFeatures7x7};
+    distanceMethod eudist{&euclideanDistance};
+
+    // std::vector<float> imVec1 = middlecrop(a);
+    std::vector<float> imVec2 = middlecrop(b);
+
+    // cv::Mat vecMat1(imVec1, CV_32F);
+    cv::Mat vecMat2(imVec2, CV_32F);
+
+    // distanceMethod funcptr{getfunc[distanceType]}
+
+    DistanceFinder dfObject{DistanceFinder(featurePath,  targetPath, "Euclidean Distance")};
+
+    /*
+    #####################
+    MAKE THE FUNCTION MAP WORK // OR JUST USE AND IF ELSE.
+    #####################
+    */
+    
+    std::cout << "\n going to compute distances \n";
+
+    dfObject.loadFeatures();
+
+    dfObject.computeDistances();
+
+    std::cout<<"\n computed distances \n";
+
+    std::cout<<"\n getting similar images\n";
+
+    dfObject.getSimilarImages(numImages, "show");
+
+    std::cout<<"\n done getting similar images\n";
+
+    // std::cout << "\n" << funcptr(vecMat1, vecMat2) << "\n";
+
+    
     return 0;
 }

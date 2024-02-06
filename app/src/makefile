@@ -36,7 +36,7 @@ FEATURES = features.csv
 # 	$(CC) $^ -o $(BINDIR)/$(TASK) $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
 # 	$(BINDIR)/$(TASK) $(DATA)$(IMDIR)/ $(DATA)$(FEATURES)
 
-app: playground.cpp
+app: playground.cpp distanceutils.cpp featureutils.cpp utils.cpp
 	$(CC) $^ -o $(BINDIR)/playground $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
 	$(BINDIR)/playground
 

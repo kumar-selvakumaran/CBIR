@@ -178,9 +178,9 @@ std::vector<float> addtest(cv::Mat &src){
 std::vector<float> subtracttest(cv::Mat &src){
     src = -src;
     cv::Mat sumRow;
-    cv::reduce(src, sumRow, 0, cv::REDUCE_SUM, CV_32F);
+    cv::reduce(src, sumRow, 0, cv::REDUCE_SUM, CV_64F);
     cv::Mat sumTotal;
-    cv::reduce(sumRow, sumTotal, 1, cv::REDUCE_SUM, CV_32F);
+    cv::reduce(sumRow, sumTotal, 1, cv::REDUCE_SUM, CV_64F);
     std::vector<float>  finalSum(sumTotal.begin<float>(), sumTotal.end<float>());
     std::cout << "\n<";
     for(size_t i = 0 ; i < finalSum.size() ; i++)
@@ -189,9 +189,9 @@ std::vector<float> subtracttest(cv::Mat &src){
     return finalSum;
 }
 
-std::vector<float> baslineFeatures7x7(cv::Mat &src){
+std::vector<float> baselineFeatures7x7(cv::Mat &src){
 
-    src.convertTo(src, CV_16FC3);
+    src.convertTo(src, CV_32FC3);
     // cv::Mat testim(100, 100, CV_32FC3, cv::Scalar(1, 1, 1));
 
     int middleRowStart = (src.rows/2) - 3;

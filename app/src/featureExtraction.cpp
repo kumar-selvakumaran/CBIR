@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     dataDir = argv[1];
     outputPath = argv[2];
 
-    featureMethod funcptr{&baslineFeatures7x7};
+    featureMethod funcptr{&baselineFeatures7x7};
     
     std::cout<<"\n\n"<<dataDir<<"\n\n";
     FeatureExtractor testfptr{FeatureExtractor(dataDir,  outputPath, funcptr)};

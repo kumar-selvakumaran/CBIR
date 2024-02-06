@@ -18,8 +18,17 @@ This progrogam stores the different feature extraction functions
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <vector>
+#include <cmath>
 
-#include<distanceutils.h>
+
+#include <distanceutils.h>
+#include <utils.h>
+
+
+const std::map<std::string, distanceMethod> distanceMethodMap = {
+    {"Euclidean Distance", euclideanDistance}
+}; 
 
 bool DistanceFinder::pathOpened(std::string dirpath){
     std::ifstream file(dirpath.c_str());
@@ -33,7 +42,7 @@ bool DistanceFinder::pathOpened(std::string dirpath){
 DistanceFinder::DistanceFinder(
     std::string featurePath,
     std::string targetPath,
-    distanceMethod distanceComputer
+    std::string distanceMethodKey
     ){
         bool status = pathOpened(featurePath);
 
@@ -43,8 +52,18 @@ DistanceFinder::DistanceFinder(
         }
 
         this->featurePath = featurePath;
-        this->targetPath = targetPath;
-        this->distanceComputer = distanceComputer;   
+        this->targetPath = targetPath; 
+
+        //########
+        std::cout << "\ndistnaceMethodmap size : " << distanceMethodMap.size() << "\n";
+        std::map<std::string, distanceMethod>::const_iterator it = distanceMethodMap.begin();
+        while(it != distanceMethodMap.end()){
+            std::cout << "\nmap key : " << it->first <<"\n";
+            it++;
+        }
+        //########
+        // this->distanceComputer = distanceMethodMap.at(distanceMethodKey);
+         
 }
 
 /*
@@ -59,44 +78,102 @@ bool DistanceFinder::loadFeatures(){
     int lineNum = 0;
     std::string imPath;
     while(std::getline(featurecsv, line)){
-        std::vector<float> featureVec;
         std::stringstream ss(line);
         std::string element;
-
+        std::vector<double> featureVec;
         if(lineNum%2!=0){
             while(std::getline(ss, element, ',')){
                 float value;
                 std::istringstream(element) >> value;
                 featureVec.push_back(value);
             }
-            cv::Mat featureMat(featureVec);
-            featureMap[imPath] = featureMat;
+            featureMap.insert(
+                std::pair<std::string, std::vector<double>>(imPath, featureVec)
+            );
         }
         else{
             imPath = line;
         }
         lineNum+=1;
-        //##############
-        // break;
-        //##############
     
     }
 
     return true;
 }
 
+
 bool DistanceFinder::computeDistances(){
-
-    return true;
-}
-
-
-bool DistanceFinder::getSimilarImages(int numImages){
-    return true;
-}
-
-std::vector<float> euclideanDistance(cv::Mat &src, cv::Mat &target){
+    std::vector<double> distances(featureMap.size());
+    std::cout << "\n initialized a distances array of size " << featureMap.size() << "\n";
     
+    std::vector<std::string> imPaths(featureMap.size());
+    
+    std::map<std::string, std::vector<double>>::iterator it = featureMap.begin();
+
+    cv::Mat targetMat(featureMap[targetPath]);
+
+    int pos = 0;
+
+    while(it != featureMap.end()){
+        std::string imPath = it->first;
+        cv::Mat featureMat(it->second);
+        double distance = distanceComputer(targetMat, featureMat);
+        distances[pos] = distance;
+        imPaths[pos] = imPath;
+
+        pos++;
+        it++;
+    }
+    
+    std::vector<size_t> sortedDistInds = sortIndices(distances);
+
+    for(size_t i = 0 ; i < sortedDistInds.size() ; i++){
+        size_t sortedPos = sortedDistInds[i];
+        distancesSorted.push_back(distances[sortedPos]);
+        imPathsDistSorted.push_back(imPaths[sortedPos]);
+    }
+
+    return true;
+}
+
+
+bool DistanceFinder::getSimilarImages(int numImages, std::string mode){
+    for(size_t i = 0 ; i < imPathsDistSorted.size() ; i++){
+        std::string imPath = imPathsDistSorted[i]; 
+        if (mode == "show"){
+            cv::Mat vizimg = cv::imread(imPath, cv::IMREAD_COLOR);
+            cv::namedWindow("similar images");
+            cv::imshow("similar images", vizimg);
+            cv::waitKey(0);
+        }    
+        else if (mode == "save") {
+            std::cout << "\n mode = 'save' in getSimilarImages is NOT IMPLEMENTED\n";
+            return false;
+        }
+    }
+
+    return true;
+}
+
+//______  fill distanceMethodMap with the implemented functions_____
+// void initDistanceMethodMap(){
+    
+//     distanceMethod distMethodLoc;
+    
+//     distMethodLoc = &euclideanDistance;
+//     distanceMethodMap["Euclidean Disntance"] = distMethodLoc;
+    
+// }
+//___________________________________________________________________
+
+
+double euclideanDistance(cv::Mat &mat1, cv::Mat &mat2){
+    cv::Mat temp1;
+    cv::pow(mat1 - mat2, 2, temp1);
+    cv::Scalar channelSums = cv::sum(temp1);
+    double distance = channelSums[0] + channelSums[1] + channelSums[2] + channelSums[3];
+    distance = sqrt(distance);
+    return distance;
 }
 
 
