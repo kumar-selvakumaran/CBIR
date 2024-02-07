@@ -23,14 +23,6 @@ This progrogam stores the different feature extraction functions
 
 #include<featureutils.h>
 
-    // class FeatureExtractor{
-
-    //     private:
-    //         // typedef int (*featureMethod)(int, int); // type for conciseness
-
-    //         char imgdbdir[256];
-    //         char csvOutPath[256];
-    //         featureMethod featureComputer;
 
 bool FeatureExtractor::checkPaths(){
     DIR *dirp;
@@ -74,11 +66,11 @@ void FeatureExtractor::featuresToCsv(const std::vector<std::vector<float>>& data
 FeatureExtractor::FeatureExtractor(
     std::string inDir,
     std::string outPath,
-    featureMethod featureComputer
+    std::string featureMethodKey
 ){
     this->imgdbdir = inDir;     
     this->csvOutPath = outPath;
-    this->featureComputer = featureComputer; 
+    this->featureComputer = getFeatureMethod(featureMethodKey); 
 
     bool status = checkPaths();
 
@@ -157,6 +149,19 @@ bool FeatureExtractor::computeFeatures(){
 Test functions to check passing function pointers as parameters in
 constructor.
 */
+
+featureMethod getFeatureMethod(std::string featureMethodKey){
+    featureMethod featureComputer;
+    if(featureMethodKey == "Baseline"){
+        featureComputer = &baselineFeatures7x7; 
+    } 
+
+    else {
+        featureComputer = &baselineFeatures7x7;
+    }
+    
+    return featureComputer;
+}
 
 // test function 1
 std::vector<float> addtest(cv::Mat &src){    

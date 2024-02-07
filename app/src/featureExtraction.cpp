@@ -25,11 +25,8 @@ int main(int argc, char *argv[]) {
 
     std::string dataDir;
     std::string outputPath;
-    std::string buffer;
-    FILE *fp;
-    DIR *dirp;
-    struct dirent *dp;
-    int i;
+    std::string featureType;
+
     // check for sufficient arguments
     if( argc < 2) {
         printf("usage: %s <directory path>\n", argv[0]);
@@ -37,13 +34,12 @@ int main(int argc, char *argv[]) {
     }
 
     dataDir = argv[1];
-    outputPath = argv[2];
-
-    featureMethod funcptr{&baselineFeatures7x7};
+    featureType = argv[2];
+    outputPath = argv[3];
     
-    std::cout<<"\n\n"<<dataDir<<"\n\n";
-    FeatureExtractor testfptr{FeatureExtractor(dataDir,  outputPath, funcptr)};
+    
+    FeatureExtractor featureExtractor{FeatureExtractor(dataDir,  outputPath, featureType)};
 
-    testfptr.computeFeatures();
+    featureExtractor.computeFeatures();
     return(0);
 }

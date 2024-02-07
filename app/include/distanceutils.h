@@ -53,7 +53,6 @@ class DistanceFinder{
         distanceMethod distanceComputer;
         std::vector<float> distances;
         std::map<std::string, std::vector<double>> featureMap;
-        // std::map<std::string, double> distanceMap;
         std::vector<double> distancesSorted;
         std::vector<std::string> imPathsDistSorted;
         bool pathOpened(std::string dirname);
@@ -79,5 +78,7 @@ class DistanceFinder{
 
 
 double euclideanDistance(cv::Mat &mat1, cv::Mat &mat2);
+
+distanceMethod getDistanceMethod(std::string distanceMethodKey);
 
 #endif // DISTANCEUTILS_H

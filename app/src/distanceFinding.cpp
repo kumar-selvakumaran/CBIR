@@ -31,44 +31,48 @@ int main(int argc, char *argv[]) {
     std::string featurePath;
     std::string distanceType;
     std::string targetPath;
+    std::string dataDir{"../data/olympus/olympus/"};
     int numImages;
-    char control = ' ';
-    std::string buffer;
-    FILE *fp;
-    DIR *dirp;
-    struct dirent *dp;
-    int i;
+
+
     // check for sufficient arguments
     if( argc < 2) {
-        printf("usage: %s <feature path (string)> <feature type (string)> <target path (string)> <number of similar images (int)>\n", argv[0]);
+        printf("usage: %s <feature path (string)> <Distance type (string)> <target path (string)> <number of similar images (int)>\n", argv[0]);
         exit(-1);
     }
+
+    
+    featurePath = argv[1];
+    distanceType = argv[2];
+    targetPath = argv[3];
+    numImages = atoi(argv[4]);
+
     // get the arguements path
     while(featurePath!=""){
-        featurePath = argv[1];
-        distanceType = argv[2];
-        targetPath = argv[3];
-        numImages = atoi(argv[4]);
+        std::cout << "\n\nREAD THE ARGUEMENTS : \t";
+
+        DistanceFinder dfObject{DistanceFinder(featurePath,  targetPath, distanceType)};
+
+        std::cout << "\n\nINITIALZIED THE OBJECTS : \t";
         
-
-        distanceMethod funcptr{&euclideanDistance};
-
-        // distanceMethod funcptr{getfunc[distanceType]}
-
-        DistanceFinder dfObject{DistanceFinder(featurePath,  targetPath, funcptr)};
-
         dfObject.computeDistances();
 
-        dfObject.getSimilarImages(numImages);
+        std::cout << "\n\nCOMPUTED THE DISTANCES: \t";
+
+        dfObject.getSimilarImages(numImages, "show");
         
         std::cout << "\n\nenter path of new image query : \t";
-        std::cin >> featurePath;
-        if(featurePath=="")
+        std::string imgName;
+        std::cin >> imgName;
+        if(imgName=="")
             break;
         else{
             std::cout <<"\n\n how many similar images should be found? : \t";
-            std::cin >> numImages;
+            std::string numstr;
+            std::cin >> numstr;
+            numImages = atoi(numstr.c_str());
         }
+        targetPath = dataDir + imgName;
     }
     return(0);
 }

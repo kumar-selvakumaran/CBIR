@@ -13,32 +13,37 @@ LIBS = `pkg-config --cflags --libs opencv4`
 
 BINDIR = ../bin
 
-# Compile and Link
-TASK = featureExtraction
-
-# image database directory
 IMDIR = olympus/olympus
 
-# targe image path
-TARGET = pic.0145.jpg
-
-#feature vector csv
 FEATURES = features.csv
 
-# TASK = imgDisplay
+# Compile and Link
+# TASK = featureExtraction
+# FEATURETYPE = Baseline
 
+# Distance computaation requisites
+TASK = distanceFinding
+TARGET = pic.1016.jpg
+DISTANCETYPE = EuclideanDistance
+NUMIMAGES = 5
 
 # $(PROJECT): $(TASK).cpp
 # 	$(CC) -o $(DEST)$(TASK).exe $(TASK).cpp $(LIBS) 
 # 	$(DEST)$(TASK).exe $(DATA)$(TASK).mp4 $(TASK)
 
-# app: featureExtraction.cpp featureutils.cpp
+#	FEATURE EXTRACTOR
+# app: featureExtraction.cpp featureutils.cpp utils.cpp
 # 	$(CC) $^ -o $(BINDIR)/$(TASK) $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
-# 	$(BINDIR)/$(TASK) $(DATA)$(IMDIR)/ $(DATA)$(FEATURES)
+# 	$(BINDIR)/$(TASK) $(DATA)$(IMDIR)/ $(FEATURETYPE) $(DATA)$(FEATURES)
 
-app: playground.cpp distanceutils.cpp featureutils.cpp utils.cpp
-	$(CC) $^ -o $(BINDIR)/playground $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
-	$(BINDIR)/playground
+#	DISTANCE FINDER
+app: distanceFinding.cpp distanceutils.cpp utils.cpp
+	$(CC) $^ -o $(BINDIR)/$(TASK) $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
+	$(BINDIR)/$(TASK) $(DATA)$(FEATURES) $(DISTANCETYPE) $(DATA)$(IMDIR)/$(TARGET) $(NUMIMAGES)
+
+# app: playground.cpp distanceutils.cpp featureutils.cpp utils.cpp
+# 	$(CC) $^ -o $(BINDIR)/playground $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
+# 	$(BINDIR)/playground
 
 # app: imgDisplay.cpp filter.cpp faceDetect.cpp
 # 	$(CC) $^ -o $(BINDIR)/$(TASK) $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF

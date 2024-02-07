@@ -57,13 +57,15 @@ class FeatureExtractor{
 
     public:
         // Constructor
-        FeatureExtractor(std::string inDir, std::string outPath, featureMethod featureComputer);
+        FeatureExtractor(std::string inDir, std::string outPath, std::string featureMethodKey);
         // Destructor
         // ~FeatureExtractor();
 
         // Member function declarations
         bool computeFeatures();
 };
+
+featureMethod getFeatureMethod(std::string featureMethodKey);
 
 std::vector<float> addtest(cv::Mat &src);
 std::vector<float> subtracttest(cv::Mat &src);

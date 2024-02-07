@@ -44,21 +44,13 @@ int main(int argc, char *argv[]) {
     featureMethod middlecrop{&baselineFeatures7x7};
     distanceMethod eudist{&euclideanDistance};
 
-    // std::vector<float> imVec1 = middlecrop(a);
     std::vector<float> imVec2 = middlecrop(b);
 
-    // cv::Mat vecMat1(imVec1, CV_32F);
     cv::Mat vecMat2(imVec2, CV_32F);
 
-    // distanceMethod funcptr{getfunc[distanceType]}
+    std::string distanceType{"Eucliean Distance"};
 
-    DistanceFinder dfObject{DistanceFinder(featurePath,  targetPath, "Euclidean Distance")};
-
-    /*
-    #####################
-    MAKE THE FUNCTION MAP WORK // OR JUST USE AND IF ELSE.
-    #####################
-    */
+    DistanceFinder dfObject{DistanceFinder(featurePath,  targetPath, distanceType)};
     
     std::cout << "\n going to compute distances \n";
 

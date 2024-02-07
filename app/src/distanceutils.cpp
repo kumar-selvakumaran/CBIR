@@ -26,10 +26,6 @@ This progrogam stores the different feature extraction functions
 #include <utils.h>
 
 
-const std::map<std::string, distanceMethod> distanceMethodMap = {
-    {"Euclidean Distance", euclideanDistance}
-}; 
-
 bool DistanceFinder::pathOpened(std::string dirpath){
     std::ifstream file(dirpath.c_str());
     if (!(file.is_open())) {
@@ -53,17 +49,9 @@ DistanceFinder::DistanceFinder(
 
         this->featurePath = featurePath;
         this->targetPath = targetPath; 
+        this->distanceComputer = getDistanceMethod(distanceMethodKey);
 
-        //########
-        std::cout << "\ndistnaceMethodmap size : " << distanceMethodMap.size() << "\n";
-        std::map<std::string, distanceMethod>::const_iterator it = distanceMethodMap.begin();
-        while(it != distanceMethodMap.end()){
-            std::cout << "\nmap key : " << it->first <<"\n";
-            it++;
-        }
-        //########
-        // this->distanceComputer = distanceMethodMap.at(distanceMethodKey);
-         
+        loadFeatures();
 }
 
 /*
@@ -112,6 +100,12 @@ bool DistanceFinder::computeDistances(){
 
     cv::Mat targetMat(featureMap[targetPath]);
 
+    //#################
+    std::cout << "target path : \t " << targetPath <<"\n";
+    printmat(targetMat, 5);
+    //#################
+
+
     int pos = 0;
 
     while(it != featureMap.end()){
@@ -138,11 +132,18 @@ bool DistanceFinder::computeDistances(){
 
 
 bool DistanceFinder::getSimilarImages(int numImages, std::string mode){
+    cv::Mat viztarget = cv::imread(targetPath, cv::IMREAD_COLOR);
+    cv::Mat vizimg;
+    cv::namedWindow("target image");
+    cv::namedWindow("similar images");
+
+    cv::imshow("target image", viztarget);
+    cv::waitKey(0);
+
     for(size_t i = 0 ; i < imPathsDistSorted.size() ; i++){
-        std::string imPath = imPathsDistSorted[i]; 
+        std::string imPath = imPathsDistSorted[i+1]; 
         if (mode == "show"){
-            cv::Mat vizimg = cv::imread(imPath, cv::IMREAD_COLOR);
-            cv::namedWindow("similar images");
+            vizimg = cv::imread(imPath, cv::IMREAD_COLOR);
             cv::imshow("similar images", vizimg);
             cv::waitKey(0);
         }    
@@ -150,22 +151,32 @@ bool DistanceFinder::getSimilarImages(int numImages, std::string mode){
             std::cout << "\n mode = 'save' in getSimilarImages is NOT IMPLEMENTED\n";
             return false;
         }
+        
+        if ( numImages==0 ){
+            cv::destroyWindow("similar images");
+            cv::destroyWindow("target image");
+            break;
+        }
+
+        numImages--;
     }
 
     return true;
 }
 
-//______  fill distanceMethodMap with the implemented functions_____
-// void initDistanceMethodMap(){
+distanceMethod getDistanceMethod(std::string distanceMethodKey){
+    distanceMethod distanceComputer;
     
-//     distanceMethod distMethodLoc;
-    
-//     distMethodLoc = &euclideanDistance;
-//     distanceMethodMap["Euclidean Disntance"] = distMethodLoc;
-    
-// }
-//___________________________________________________________________
+    if (distanceMethodKey == "EuclideanDistance"){
+        distanceComputer = &euclideanDistance;
+    }
 
+    else {
+        distanceComputer = &euclideanDistance;
+    }
+
+    return distanceComputer;
+}
 
 double euclideanDistance(cv::Mat &mat1, cv::Mat &mat2){
     cv::Mat temp1;
