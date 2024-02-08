@@ -67,9 +67,7 @@ class FeatureExtractor{
 
 featureMethod getFeatureMethod(std::string featureMethodKey);
 
-std::vector<float> addtest(cv::Mat &src);
-std::vector<float> subtracttest(cv::Mat &src);
 std::vector<float> baselineFeatures7x7(cv::Mat &src);
-
+std::vector<float> histFeature(cv::Mat &src);
 
 #endif // FEATUREUTILS_H

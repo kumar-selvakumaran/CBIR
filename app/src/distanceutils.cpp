@@ -49,7 +49,8 @@ DistanceFinder::DistanceFinder(
 
         this->featurePath = featurePath;
         this->targetPath = targetPath; 
-        this->distanceComputer = getDistanceMethod(distanceMethodKey);
+        this->distanceName = distanceMethodKey;
+        this->distanceComputer = getDistanceMethod(this->distanceName);
 
         loadFeatures();
 }
@@ -68,20 +69,29 @@ bool DistanceFinder::loadFeatures(){
     while(std::getline(featurecsv, line)){
         std::stringstream ss(line);
         std::string element;
-        std::vector<double> featureVec;
+        std::vector<double> feature;
+        std::vector<std::vector<double>> features;
         if(lineNum%2!=0){
             while(std::getline(ss, element, ',')){
-                float value;
+                if(element == "<SEP>"){
+                    // myPrintVec(feature);
+                    features.push_back(feature);
+                    feature = std::vector<double>();
+                } else {
+                double value;
                 std::istringstream(element) >> value;
-                featureVec.push_back(value);
+                feature.push_back(value);
+                }
             }
+            features.push_back(feature);
             featureMap.insert(
-                std::pair<std::string, std::vector<double>>(imPath, featureVec)
+                std::pair<std::string, std::vector<std::vector<double>>>(imPath, features)
             );
         }
         else{
             imPath = line;
         }
+        
         lineNum+=1;
     
     }
@@ -96,22 +106,28 @@ bool DistanceFinder::computeDistances(){
     
     std::vector<std::string> imPaths(featureMap.size());
     
-    std::map<std::string, std::vector<double>>::iterator it = featureMap.begin();
+    std::map<std::string, std::vector<std::vector<double>>>::iterator it = featureMap.begin();
 
-    cv::Mat targetMat(featureMap[targetPath]);
+    // cv::Mat targetMat(featureMap[targetPath]);
 
-    //#################
-    std::cout << "target path : \t " << targetPath <<"\n";
-    printmat(targetMat, 5);
-    //#################
-
+    // //#################
+    // std::cout << "target path : \t " << targetPath <<"\n";
+    // printmat(targetMat, 5);
+    // //#################
+    std::vector<std::vector<double>> targetVec(featureMap[targetPath]);
 
     int pos = 0;
 
     while(it != featureMap.end()){
         std::string imPath = it->first;
-        cv::Mat featureMat(it->second);
-        double distance = distanceComputer(targetMat, featureMat);
+        // std::cout << "\nloaded impath : \t " << imPath <<" loading MAT\n";
+        // cv::Mat featureMat(it->second);
+        std::vector<std::vector<double>> featureVec = it->second;
+        // std::cout << "\nloaded featurevec, computing distances\n";
+        // printmat(featureMat, 4);
+        // std::cout <<"\nerror not in printmat\n";
+        double distance = distanceComputer(targetVec, featureVec);
+        // std::cout << "\ncomputed distances\n";
         distances[pos] = distance;
         imPaths[pos] = imPath;
 
@@ -119,7 +135,9 @@ bool DistanceFinder::computeDistances(){
         it++;
     }
     
-    std::vector<size_t> sortedDistInds = sortIndices(distances);
+    bool maximize = toMinOrMax(distanceName);
+
+    std::vector<size_t> sortedDistInds = sortIndices(distances, maximize);
 
     for(size_t i = 0 ; i < sortedDistInds.size() ; i++){
         size_t sortedPos = sortedDistInds[i];
@@ -144,6 +162,7 @@ bool DistanceFinder::getSimilarImages(int numImages, std::string mode){
         std::string imPath = imPathsDistSorted[i+1]; 
         if (mode == "show"){
             vizimg = cv::imread(imPath, cv::IMREAD_COLOR);
+            std::cout << "\n SIMILAR IMAGE : " << i << " path : " << imPath << "\n";
             cv::imshow("similar images", vizimg);
             cv::waitKey(0);
         }    
@@ -169,21 +188,70 @@ distanceMethod getDistanceMethod(std::string distanceMethodKey){
     
     if (distanceMethodKey == "EuclideanDistance"){
         distanceComputer = &euclideanDistance;
+    } else if(distanceMethodKey == "HistogramIntersection"){
+        distanceComputer = &HistogramIntersection;
     }
 
     else {
+        std::cout << "\n DISTANCE METHOD INPUTTED INCORRECTLY OR NOT AT ALL \n";
         distanceComputer = &euclideanDistance;
     }
 
     return distanceComputer;
 }
 
-double euclideanDistance(cv::Mat &mat1, cv::Mat &mat2){
+bool toMinOrMax(std::string &distanceKey){
+    bool minimizeOrMaximize;
+
+    if (distanceKey == "EuclideanDistance"){
+        minimizeOrMaximize = false;
+    } else if(distanceKey == "HistogramIntersection"){
+        minimizeOrMaximize = true;
+    }
+
+    else {
+        std::cout << "\n DISTANCE METHOD INPUTTED INCORRECTLY OR NOT AT ALL \n";
+        minimizeOrMaximize = false;
+    }
+
+    return minimizeOrMaximize;
+}
+
+double euclideanDistance(std::vector<std::vector<double>> vec1, 
+                        std::vector<std::vector<double>> vec2){
+    
+    if(vec1.size() > 1){
+        std::cout << "\n NUMBER OF FEATURES GREATER THAN 1 FOR EUCLIDEAN DISTANCE COMPUTATION";
+        std::cout << "EUCLIDEAN DISTANCE FOR MULTIPLE FEATURES PER IMAGE IS NOT DEFINED\n";
+    }
+
+    cv::Mat mat1(vec1[0]);
+    cv::Mat mat2(vec2[0]);
+
     cv::Mat temp1;
     cv::pow(mat1 - mat2, 2, temp1);
     cv::Scalar channelSums = cv::sum(temp1);
     double distance = channelSums[0] + channelSums[1] + channelSums[2] + channelSums[3];
     distance = sqrt(distance);
+    return distance;
+}
+
+double HistogramIntersection(std::vector<std::vector<double>> vec1, 
+                        std::vector<std::vector<double>> vec2){
+    
+    if(vec1.size() > 1){
+        std::cout << "\n NUMBER OF FEATURES GREATER THAN 1 FOR EUCLIDEAN DISTANCE COMPUTATION";
+        std::cout << "EUCLIDEAN DISTANCE FOR MULTIPLE FEATURES PER IMAGE IS NOT DEFINED\n";
+    }
+    
+    cv::Mat mat1(vec1[0]);
+    cv::Mat mat2(vec2[0]);
+    
+    cv::Mat temp1;
+    temp1 = cv::min(mat1, mat2);
+    
+    cv::Scalar channelSums = cv::sum(temp1);
+    double distance = channelSums[0] + channelSums[1] + channelSums[2] + channelSums[3];
     return distance;
 }
 

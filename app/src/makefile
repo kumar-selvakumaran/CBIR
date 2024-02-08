@@ -37,13 +37,13 @@ NUMIMAGES = 5
 # 	$(BINDIR)/$(TASK) $(DATA)$(IMDIR)/ $(FEATURETYPE) $(DATA)$(FEATURES)
 
 #	DISTANCE FINDER
-app: distanceFinding.cpp distanceutils.cpp utils.cpp
-	$(CC) $^ -o $(BINDIR)/$(TASK) $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
-	$(BINDIR)/$(TASK) $(DATA)$(FEATURES) $(DISTANCETYPE) $(DATA)$(IMDIR)/$(TARGET) $(NUMIMAGES)
+# app: distanceFinding.cpp distanceutils.cpp utils.cpp
+# 	$(CC) $^ -o $(BINDIR)/$(TASK) $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
+# 	$(BINDIR)/$(TASK) $(DATA)$(FEATURES) $(DISTANCETYPE) $(DATA)$(IMDIR)/$(TARGET) $(NUMIMAGES)
 
-# app: playground.cpp distanceutils.cpp featureutils.cpp utils.cpp
-# 	$(CC) $^ -o $(BINDIR)/playground $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
-# 	$(BINDIR)/playground
+app: playground.cpp distanceutils.cpp featureutils.cpp utils.cpp
+	$(CC) $^ -o $(BINDIR)/playground $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
+	$(BINDIR)/playground
 
 # app: imgDisplay.cpp filter.cpp faceDetect.cpp
 # 	$(CC) $^ -o $(BINDIR)/$(TASK) $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF

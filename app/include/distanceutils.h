@@ -12,8 +12,7 @@
 
 // #include<distanceutils.h>
 
-typedef double (*distanceMethod)(cv::Mat &src, cv::Mat &target); 
-
+typedef double (*distanceMethod)(std::vector<std::vector<double>> vec1, std::vector<std::vector<double>> vec2); 
 
 /*
 Given a directory on the command line, scans through the directory for image
@@ -50,9 +49,10 @@ class DistanceFinder{
         // Private member variable
         std::string featurePath;
         std::string targetPath;
+        std::string distanceName;
         distanceMethod distanceComputer;
         std::vector<float> distances;
-        std::map<std::string, std::vector<double>> featureMap;
+        std::map<std::string, std::vector<std::vector<double>>> featureMap;
         std::vector<double> distancesSorted;
         std::vector<std::string> imPathsDistSorted;
         bool pathOpened(std::string dirname);
@@ -77,8 +77,12 @@ class DistanceFinder{
 };
 
 
-double euclideanDistance(cv::Mat &mat1, cv::Mat &mat2);
+double euclideanDistance(std::vector<std::vector<double>> vec1, std::vector<std::vector<double>> vec2);
+
+double HistogramIntersection(std::vector<std::vector<double>> vec1, std::vector<std::vector<double>> vec2);
 
 distanceMethod getDistanceMethod(std::string distanceMethodKey);
+
+bool toMinOrMax(std::string &distanceKey);
 
 #endif // DISTANCEUTILS_H

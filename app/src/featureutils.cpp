@@ -154,44 +154,16 @@ featureMethod getFeatureMethod(std::string featureMethodKey){
     featureMethod featureComputer;
     if(featureMethodKey == "Baseline"){
         featureComputer = &baselineFeatures7x7; 
-    } 
-
+    } else if (featureMethodKey == "Histogram") {
+        featureComputer = &histFeature;
+    }
+ 
     else {
+        std::cout << "\n FEATURE METHOD INPUTTED INCORRECTLY OR NOT AT ALL \n";
         featureComputer = &baselineFeatures7x7;
     }
     
     return featureComputer;
-}
-
-// test function 1
-std::vector<float> addtest(cv::Mat &src){    
-    cv::Mat sumRow;
-    cv::reduce(src, sumRow, 1, cv::REDUCE_SUM, CV_32FC3);
-    cv::Mat sumTotal;
-    cv::reduce(sumRow, sumTotal, 0, cv::REDUCE_SUM, CV_32FC3);
-    cv::reduce(sumTotal, sumTotal, 0, cv::REDUCE_SUM, CV_32FC1);
-    std::cout<<format(sumTotal, cv::Formatter::FMT_NUMPY);
-    std::vector<float>  finalSum(sumTotal.begin<float>(), sumTotal.end<float>());
-    std::cout << "\n<";
-    for(size_t i = 0 ; i < finalSum.size() ; i++)
-        std::cout << finalSum[i] << " , ";
-    std::cout << ">\n";
-    return finalSum;
-}
-
-// test function 2
-std::vector<float> subtracttest(cv::Mat &src){
-    src = -src;
-    cv::Mat sumRow;
-    cv::reduce(src, sumRow, 0, cv::REDUCE_SUM, CV_64F);
-    cv::Mat sumTotal;
-    cv::reduce(sumRow, sumTotal, 1, cv::REDUCE_SUM, CV_64F);
-    std::vector<float>  finalSum(sumTotal.begin<float>(), sumTotal.end<float>());
-    std::cout << "\n<";
-    for(size_t i = 0 ; i < finalSum.size() ; i++)
-        std::cout << finalSum[i] << " , ";
-    std::cout << "\n>";
-    return finalSum;
 }
 
 std::vector<float> baselineFeatures7x7(cv::Mat &src){
@@ -214,5 +186,46 @@ std::vector<float> baselineFeatures7x7(cv::Mat &src){
     std::vector<float> features = middleSlice.reshape(1,1);
     
     return features;
+}
+
+std::vector<float> histFeature(cv::Mat &src){
+    cv::Mat hist;
+    // NUMBER OF BINS
+    int histsize = 8;
+    // int max = 0;
+    hist = cv::Mat::zeros( cv::Size( histsize, histsize ), CV_32FC1 );
+    // std::cout << "\n computing histogram \n";
+    // max = 0;
+
+    for( int i=0;i<src.rows;i++) {
+        cv::Vec3b *ptr = src.ptr<cv::Vec3b>(i);
+        for(int j=0;j<src.cols;j++) {
+
+            float B = ptr[j][0];
+            float G = ptr[j][1];
+            float R = ptr[j][2];
+
+            float divisor = R + G + B;
+            divisor = divisor > 0.0 ? divisor : 1.0;
+            float r = R / divisor;
+            float g = G / divisor;
+
+            int rindex = (int)( r * (histsize - 1) + 0.5 );
+            int gindex = (int)( g * (histsize - 1) + 0.5 );
+
+            hist.at<float>(rindex, gindex)++;
+
+        //   float newvalue = hist.at<float>(rindex, gindex);
+        //   max = newvalue > max ? newvalue : max;
+        }
+    }
+
+    hist /= (src.rows * src.cols);
+
+    std::vector<float> features = hist.reshape(1,1);
+
+    // std::cout <<"\n RETURNING HISTOGRAM\n";
+    return features;
+
 }
 

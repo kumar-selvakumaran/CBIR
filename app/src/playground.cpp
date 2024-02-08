@@ -28,27 +28,32 @@
 int main(int argc, char *argv[]) {
 
     std::string featurePath{"../data/features.csv"};
-    std::map<std::string , cv::Mat>featureMap;
-    std::ifstream featurecsv(featurePath);
-    std::string line;
-    int lineNum = 0;
-    std::string imPath1{"../data/olympus/olympus/pic.0002.jpg"};
-    std::string imPath2{"../data/olympus/olympus/pic.0003.jpg"};
-    std::string targetPath{"../data/olympus/olympus/pic.1016.jpg"};
-
-    // cv::Mat a = cv::imread(targetPath, cv::IMREAD_COLOR);
-    cv::Mat b = cv::imread(imPath2, cv::IMREAD_COLOR);
     
+    std::string dataDir{"../data/olympus/olympus/"};
+    std::string targetPath{"../data/olympus/olympus/pic.0164.jpg"};
+
+    
+    
+
+    // //____________ENTER FEATURE TYPE_____________________________________________
+    // std::string featureType{"Histogram"};
+    // //___________________________________________________________________________
+
+    // std::cout << "\n going to initialize feature extractor \n";
+
+    // FeatureExtractor featureExtractor{FeatureExtractor(dataDir,  featurePath, featureType)};
+
+    // std::cout << "\n initialized feature extractor, going to compute the features \n";
+    // featureExtractor.computeFeatures();
+
+    // std::cout << "\n FINISHED COMPUTING THE FEATURES \n";
+
+
+
+    // //___________ENTER DISTANCE TYPE and NUM IMAGES TO DISTPLAY__________________
+    std::string distanceType{"EuclideanDistance"};
     int numImages = 5;
-
-    featureMethod middlecrop{&baselineFeatures7x7};
-    distanceMethod eudist{&euclideanDistance};
-
-    std::vector<float> imVec2 = middlecrop(b);
-
-    cv::Mat vecMat2(imVec2, CV_32F);
-
-    std::string distanceType{"Eucliean Distance"};
+    //___________________________________________________________________________
 
     DistanceFinder dfObject{DistanceFinder(featurePath,  targetPath, distanceType)};
     
@@ -66,8 +71,49 @@ int main(int argc, char *argv[]) {
 
     std::cout<<"\n done getting similar images\n";
 
-    // std::cout << "\n" << funcptr(vecMat1, vecMat2) << "\n";
+
+    //##################### PLAY GROUND ##############################
 
     
+    // std::string imPath1{"../data/olympus/olympus/pic.0930.jpg"};
+
+    /*
+    alter loadFeatures() : make feature map std::map<std::string , std::vector<std::vector<double>>>
+    - alterDistance functions to take in std::vector<std::vector<double>> as input, .
+            vector of float vectors is preferred over 2d mat, because, it supports heterogenous sized elements,
+            meaning, features of different sizes. probably with the use of pointers and non-contiguous elements(inner arrays).
+
+    - distance fuctions that 
+    */
+    
+    // std::ifstream featurecsv(featurePath);
+    // std::string line;
+    // std::getline(featurecsv, line);
+    // std::getline(featurecsv, line);
+    // std::cout << "\n" << line << "\n";
+    // std::string test;
+    // std::stringstream testss(line);
+    // std::getline(testss, test, ',');
+    // double element;
+    // std::istringstream(test) >> element;
+    // if(test == "0.00108337"){
+    //     std::cout << "\nstringstream element comparable\n";
+    // }
+    // std::cout << "\n" << typeid(test).name() << " test " << test << "\n";
+    // std::cout << "\n" << typeid(element).name() << " element " << element << "\n";
+
+
+
+
+
+
+
+    // while(std::getline(featurescsv, line)){
+    //     std::stringstream ss(line);
+    //     std::string element;
+    //     std::vector<double> featureVec;
+    //     if(lineNum)
+    // }
+
     return 0;
 }
