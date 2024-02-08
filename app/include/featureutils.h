@@ -11,7 +11,7 @@
 
 // #include<featureutils.h>
 
-typedef std::vector<float> (*featureMethod)(cv::Mat &src); 
+typedef std::vector<std::vector<double>> (*featureMethod)(cv::Mat &src); 
 
 
 /*
@@ -53,7 +53,7 @@ class FeatureExtractor{
         
         bool checkPaths();
 
-        void featuresToCsv(const std::vector<std::vector<float>>& data);
+        // void featuresToCsv(const std::vector<std::vector<float>>& data);
 
     public:
         // Constructor
@@ -67,7 +67,8 @@ class FeatureExtractor{
 
 featureMethod getFeatureMethod(std::string featureMethodKey);
 
-std::vector<float> baselineFeatures7x7(cv::Mat &src);
-std::vector<float> histFeature(cv::Mat &src);
+std::vector<std::vector<double>> baselineFeatures7x7(cv::Mat &src);
+std::vector<std::vector<double>> histFeature(cv::Mat &src);
+std::vector<std::vector<double>> upperLowerQuartersHist(cv::Mat &src);
 
 #endif // FEATUREUTILS_H

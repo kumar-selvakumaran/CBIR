@@ -51,7 +51,7 @@ class DistanceFinder{
         std::string targetPath;
         std::string distanceName;
         distanceMethod distanceComputer;
-        std::vector<float> distances;
+        std::vector<double> distances;
         std::map<std::string, std::vector<std::vector<double>>> featureMap;
         std::vector<double> distancesSorted;
         std::vector<std::string> imPathsDistSorted;

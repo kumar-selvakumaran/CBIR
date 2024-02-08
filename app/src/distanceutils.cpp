@@ -160,6 +160,8 @@ bool DistanceFinder::getSimilarImages(int numImages, std::string mode){
 
     for(size_t i = 0 ; i < imPathsDistSorted.size() ; i++){
         std::string imPath = imPathsDistSorted[i+1]; 
+        double distance = distancesSorted[i+1];
+        std::cout << "\n distance : " << distance << "\n";
         if (mode == "show"){
             vizimg = cv::imread(imPath, cv::IMREAD_COLOR);
             std::cout << "\n SIMILAR IMAGE : " << i << " path : " << imPath << "\n";

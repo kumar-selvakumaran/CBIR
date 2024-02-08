@@ -35,8 +35,8 @@ int main(int argc, char *argv[]) {
     
     
 
-    // //____________ENTER FEATURE TYPE_____________________________________________
-    // std::string featureType{"Histogram"};
+    //____________ENTER FEATURE TYPE_____________________________________________
+    // std::string featureType{"upperLowerQuartersHist"};
     // //___________________________________________________________________________
 
     // std::cout << "\n going to initialize feature extractor \n";
@@ -49,9 +49,8 @@ int main(int argc, char *argv[]) {
     // std::cout << "\n FINISHED COMPUTING THE FEATURES \n";
 
 
-
     // //___________ENTER DISTANCE TYPE and NUM IMAGES TO DISTPLAY__________________
-    std::string distanceType{"EuclideanDistance"};
+    std::string distanceType{"HistogramIntersection"};
     int numImages = 5;
     //___________________________________________________________________________
 
@@ -104,16 +103,114 @@ int main(int argc, char *argv[]) {
 
 
 
+    // std::stringstream ss{"123.02,1231239,1.23,0.123214,<SEP>,234e-24,123123.123,5567,4334.0"};
+    // std::string line;
+    // std::vector<float> feature;
+    // std::vector<std::vector<float>>features;
+    // std::string element;
+    
+    // // if(lineNum%2!=0){
 
-
-
-
-    // while(std::getline(featurescsv, line)){
-    //     std::stringstream ss(line);
-    //     std::string element;
-    //     std::vector<double> featureVec;
-    //     if(lineNum)
+    // while(std::getline(ss, element, ',')){
+    //     if(element == "<SEP>"){
+    //         features.push_back(feature);
+    //         feature = std::vector<float>();
+    //     } else {
+    //     float value;
+    //     std::istringstream(element) >> value;
+    //     feature.push_back(value);
+    //     }
     // }
+    // features.push_back(feature);
+
+    // std::cout <<" \n intermediate 2d vector : ";
+    // for(size_t i =  0 ; i < features.size() ; i++){
+    //     myPrintVec(features[i]);
+    // }
+
+    // std::cout << "\n features size : " << features.size() << "\n";
+    // for(size_t i = 0; i < features.size() ; i++) {
+    //     if(i > 0){
+    //         std::cout << ",<SEP>,";
+    //     }
+    //     cv::Mat temp(features[i]);
+    //     std::vector<float> feature = temp;
+    //     for (size_t j = 0; j < feature.size(); ++j) {
+    //         std::cout << feature[j];
+    //         if (j < feature.size() - 1) {
+    //             std::cout << ",";
+    //         }
+    //     }
+
+    // }
+    
+    // std::cout<<"\n";
+
+    // // while(std::getline(featurescsv, line)){
+    // //     std::stringstream ss(line);
+    // //     std::string element;
+    // //     std::vector<double> featureVec;
+    // //     if(lineNum)
+    // // }
+
+    // double initer[32] = {1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7,8,8,8,8};
+    // cv::Mat testmat(8, 4, CV_64FC1, initer);
+    // printmat(testmat, 10);
+
+    // cv::Mat src = testmat;
+
+    // cv::Mat histUpperQuarter;
+    // cv::Mat histLowerQuarter;
+
+    // int upperQuarterRowStart = 0;
+    // int upperQuarterColStart = 0;
+    // int upperQuarterRowEnd = (int)(src.rows/4);
+    // int upperQuarterColEnd = src.cols;
+
+    // cv::Mat upperQuarter;
+
+    // std::cout<<"\ncropping the upper quarter\n";
+
+    // src(
+    //     cv::Range(upperQuarterRowStart, upperQuarterRowEnd),
+    //     cv::Range(upperQuarterColStart, upperQuarterColEnd)
+    //     ).copyTo(upperQuarter);
+
+    // std::cout << "\ncropped the upper quarter, making hist \n";
+    // printmat(upperQuarter, 10);
+    // histUpperQuarter = makeHist(upperQuarter, 4); 
+
+    // std::cout << "\n made upper quarter hist, cropping lower quarter \n";
+
+    // int lowerQuarterRowStart = (int)(3*(src.rows/4));
+    // int lowerQuarterColStart = 0;
+    // int lowerQuarterRowEnd = src.rows;
+    // int lowerQuarterColEnd = src.cols;
+
+    // cv::Mat lowerQuarter;
+
+    // src(
+    //     cv::Range(lowerQuarterRowStart, lowerQuarterRowEnd),
+    //     cv::Range(lowerQuarterColStart, lowerQuarterColEnd)
+    //     ).copyTo(lowerQuarter);
+
+    // std::cout << "\ncropped lower quarter , making lower quarter hist\n";
+
+    // printmat(lowerQuarter, 10);
+
+    // histLowerQuarter = makeHist(lowerQuarter, 4); 
+
+    // std::cout << "\n made lower quarter hist, making features \n";
+
+    // std::vector<std::vector<double>> features;
+    // features.push_back(histUpperQuarter.reshape(1,1));
+    // features.push_back(histLowerQuarter.reshape(1,1));
+
+    // for( size_t i = 0 ; i < features.size() ; i++){
+    //     myPrintVec(features[i]);
+    // }
+
+    // /*output has 0s becaause toy matrix is 1d aka only blue channel.*/
 
     return 0;
 }

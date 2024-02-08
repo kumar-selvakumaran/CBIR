@@ -23,19 +23,19 @@ This progrogam stores the different feature extraction functions
 
 #include <utils.h>
 
-std::vector<float> myMatToVec(cv::Mat &src){
-    std::vector<float> vecMat;
-    if (src.isContinuous()) {
-        // array.assign((float*)mat.datastart, (float*)mat.dataend); // <- has problems for sub-matrix like mat = big_mat.row(i)
-        vecMat.assign((float*)src.data, (float*)src.data + src.total()*src.channels());
-    } else {
-        for (int i = 0; i < src.rows; ++i) {
-            vecMat.insert(vecMat.end(), src.ptr<float>(i), src.ptr<float>(i)+src.cols*src.channels());
-        }
-    }
+// std::vector<float> myMatToVec(cv::Mat &src){
+//     std::vector<float> vecMat;
+//     if (src.isContinuous()) {
+//         // array.assign((float*)mat.datastart, (float*)mat.dataend); // <- has problems for sub-matrix like mat = big_mat.row(i)
+//         vecMat.assign((float*)src.data, (float*)src.data + src.total()*src.channels());
+//     } else {
+//         for (int i = 0; i < src.rows; ++i) {
+//             vecMat.insert(vecMat.end(), src.ptr<float>(i), src.ptr<float>(i)+src.cols*src.channels());
+//         }
+//     }
 
-    return vecMat;
-}
+//     return vecMat;
+// }
 
 std::string myMatType(cv::Mat &src) {
     int type = src.type();
@@ -139,5 +139,54 @@ void printmat(cv::Mat &src, int vizdim)
 //     return(0);
 // }
 
+cv::Mat makeHist(cv::Mat &src, int numBins){
+    cv::Mat hist;
+    // NUMBER OF BINS
+    int histSize = std::max(src.rows, src.cols);
+    histSize = std::min(numBins, histSize);
+
+    hist = cv::Mat::zeros( cv::Size( histSize, histSize ), CV_64FC1 );
+
+    for( int i=0;i<src.rows;i++) {
+        cv::Vec3b *ptr = src.ptr<cv::Vec3b>(i);
+        for(int j=0;j<src.cols;j++) {
+
+            double B = ptr[j][0];
+            double G = ptr[j][1];
+            double R = ptr[j][2];
+
+            double divisor = R + G + B;
+            divisor = divisor > 0.0 ? divisor : 1.0;
+            double r = R / divisor;
+            double g = G / divisor;
+
+            int rindex = (int)( r * (histSize - 1) + 0.5 );
+            int gindex = (int)( g * (histSize - 1) + 0.5 );
+
+            hist.at<double>(rindex, gindex)++;
+        }
+    }
+
+    hist /= (src.rows * src.cols);
+    return hist;
+}
+
+int earliestDecPos(double num){
+    if(std::floor(num) > 0){
+        std::cout << "\n TRYNG TO FIND THE EARLIEST DECIMAL PLACE FOR NUM > 1 (NOT INTENDED WHILE DEFINITION)\n";
+        return 0;
+    }
+    double decPart  = num - std::floor(num);
+    int reqpos = 0; 
+    double diff = 0;
+    while(diff==0){
+        double decPart10 = decPart * 10;
+        diff = (int)decPart10 - (int)decPart;
+        decPart = decPart10;
+        reqpos++;
+    }
+
+    return reqpos;
+}
 
 
