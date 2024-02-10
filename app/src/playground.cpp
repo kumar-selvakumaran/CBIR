@@ -18,11 +18,13 @@
 #include <map>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <algorithm>
 
 //#### only for testing addtest/subtracttest
 #include <featureutils.h>
 #include <distanceutils.h>
 #include <utils.h>
+#include <hog.h>
 
 
 int main(int argc, char *argv[]) {
@@ -30,13 +32,11 @@ int main(int argc, char *argv[]) {
     std::string featurePath{"../data/features.csv"};
     
     std::string dataDir{"../data/olympus/olympus/"};
-    std::string targetPath{"../data/olympus/olympus/pic.0164.jpg"};
+    std::string targetPath{"../data/olympus/olympus/pic.0598.jpg"};
 
-    
-    
 
-    //____________ENTER FEATURE TYPE_____________________________________________
-    // std::string featureType{"upperLowerQuartersHist"};
+    // //____________ENTER FEATURE TYPE_____________________________________________
+    // std::string featureType{"globalHog"};
     // //___________________________________________________________________________
 
     // std::cout << "\n going to initialize feature extractor \n";
@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
     // std::cout << "\n FINISHED COMPUTING THE FEATURES \n";
 
 
-    // //___________ENTER DISTANCE TYPE and NUM IMAGES TO DISTPLAY__________________
-    std::string distanceType{"HistogramIntersection"};
+    //___________ENTER DISTANCE TYPE and NUM IMAGES TO DISTPLAY__________________
+    std::string distanceType{"EuclideanDistance"};
     int numImages = 5;
     //___________________________________________________________________________
 
@@ -159,58 +159,169 @@ int main(int argc, char *argv[]) {
 
     // cv::Mat src = testmat;
 
-    // cv::Mat histUpperQuarter;
-    // cv::Mat histLowerQuarter;
+    // cv::Mat histUpperCrop;
+    // cv::Mat histLowerCrop;
 
-    // int upperQuarterRowStart = 0;
-    // int upperQuarterColStart = 0;
-    // int upperQuarterRowEnd = (int)(src.rows/4);
-    // int upperQuarterColEnd = src.cols;
+    // int upperCropRowStart = 0;
+    // int upperCropColStart = 0;
+    // int upperCropRowEnd = (int)(src.rows/4);
+    // int upperCropColEnd = src.cols;
 
-    // cv::Mat upperQuarter;
+    // cv::Mat upperCrop;
 
-    // std::cout<<"\ncropping the upper quarter\n";
-
-    // src(
-    //     cv::Range(upperQuarterRowStart, upperQuarterRowEnd),
-    //     cv::Range(upperQuarterColStart, upperQuarterColEnd)
-    //     ).copyTo(upperQuarter);
-
-    // std::cout << "\ncropped the upper quarter, making hist \n";
-    // printmat(upperQuarter, 10);
-    // histUpperQuarter = makeHist(upperQuarter, 4); 
-
-    // std::cout << "\n made upper quarter hist, cropping lower quarter \n";
-
-    // int lowerQuarterRowStart = (int)(3*(src.rows/4));
-    // int lowerQuarterColStart = 0;
-    // int lowerQuarterRowEnd = src.rows;
-    // int lowerQuarterColEnd = src.cols;
-
-    // cv::Mat lowerQuarter;
+    // std::cout<<"\ncropping the upper Crop\n";
 
     // src(
-    //     cv::Range(lowerQuarterRowStart, lowerQuarterRowEnd),
-    //     cv::Range(lowerQuarterColStart, lowerQuarterColEnd)
-    //     ).copyTo(lowerQuarter);
+    //     cv::Range(upperCropRowStart, upperCropRowEnd),
+    //     cv::Range(upperCropColStart, upperCropColEnd)
+    //     ).copyTo(upperCrop);
 
-    // std::cout << "\ncropped lower quarter , making lower quarter hist\n";
+    // std::cout << "\ncropped the upper Crop, making hist \n";
+    // printmat(upperCrop, 10);
+    // histUpperCrop = makeHist(upperCrop, 4); 
 
-    // printmat(lowerQuarter, 10);
+    // std::cout << "\n made upper Crop hist, cropping lower Crop \n";
 
-    // histLowerQuarter = makeHist(lowerQuarter, 4); 
+    // int lowerCropRowStart = (int)(3*(src.rows/4));
+    // int lowerCropColStart = 0;
+    // int lowerCropRowEnd = src.rows;
+    // int lowerCropColEnd = src.cols;
 
-    // std::cout << "\n made lower quarter hist, making features \n";
+    // cv::Mat lowerCrop;
+
+    // src(
+    //     cv::Range(lowerCropRowStart, lowerCropRowEnd),
+    //     cv::Range(lowerCropColStart, lowerCropColEnd)
+    //     ).copyTo(lowerCrop);
+
+    // std::cout << "\ncropped lower Crop , making lower Crop hist\n";
+
+    // printmat(lowerCrop, 10);
+
+    // histLowerCrop = makeHist(lowerCrop, 4); 
+
+    // std::cout << "\n made lower Crop hist, making features \n";
 
     // std::vector<std::vector<double>> features;
-    // features.push_back(histUpperQuarter.reshape(1,1));
-    // features.push_back(histLowerQuarter.reshape(1,1));
+    // features.push_back(histUpperCrop.reshape(1,1));
+    // features.push_back(histLowerCrop.reshape(1,1));
 
     // for( size_t i = 0 ; i < features.size() ; i++){
     //     myPrintVec(features[i]);
     // }
 
     // /*output has 0s becaause toy matrix is 1d aka only blue channel.*/
+
+    // cv::Mat testmat = cv::imread(targetPath, cv::IMREAD_COLOR);
+
+    
+    // std::string buffer;
+    // FILE *fp;
+    // DIR *dirp;
+    // struct dirent *dp;
+    // int i;
+    
+    // dirp = opendir(dataDir.c_str());;
+
+    // std::vector<std::string> imPaths;
+
+    // while( (dp = readdir(dirp)) != NULL ) {
+    //     // check if the file is an image
+    //     if( strstr(dp->d_name, ".jpg") ||
+    //     strstr(dp->d_name, ".png") ||
+    //     strstr(dp->d_name, ".ppm") ||
+    //     strstr(dp->d_name, ".tif") ) {
+    //         // build the overall filename
+    //         buffer = dataDir;
+    //         // std::cout<< " \n " << buffer << "\n" ;
+    //         buffer += dp->d_name;
+    //         imPaths.push_back(buffer);
+    //     }         
+    // }
+
+
+    // std::vector<size_t> indices(imPaths.size());
+    // std::iota(indices.begin(), indices.end(), 0);
+    // std::random_shuffle( indices.begin(), indices.end() );
+    
+    // for(size_t i = 0 ; i < 5 ; i++){
+
+    //     /* `targetPath = imPaths[indices[i]]` is assigning the `i`th image path from the `imPaths`
+    //     vector to the `targetPath` variable. The `indices` vector is used to shuffle the indices of
+    //     the `imPaths` vector, so each time the loop runs, a different image path is assigned to
+    //     `targetPath`. This allows for random selection of images from the `imPaths` vector. */
+    //     // targetPath = imPaths[indices[i]];
+    //     targetPath =  "../data/olympus/olympus/pic.0063.jpg";
+
+    //     std::cout<< "impath : " <<targetPath << "\n";
+
+    //     cv::Mat testmat = cv::imread(targetPath, cv::IMREAD_COLOR); 
+
+    //     hog hogComputer(5, 160, -160, 8, 5);
+
+    //     cv::Mat hist = hogComputer.computeGlobalHogV1(testmat);
+
+    //     hist = hist.reshape(1, 1);
+
+    //     std::cout << "\n\n\n" << hist.size() << "\n\n";
+
+    //     break;
+        
+        // cv::Mat magMat;
+        // cv::Mat orMat;
+        // cv::Mat outmat;
+        // cv::Mat temp1, temp2, temp3, temp;
+
+        // cv::Mat outmatx;
+        // cv::Mat outmaty;
+
+        // std::cout << "\n testmat depth = " << testmat.depth() << "\n";
+        
+        // cv::namedWindow("target image");
+        // cv::imshow("target image", testmat);
+        // cv::waitKey(0);
+
+        // cv::medianBlur(testmat, testmat, 5);
+
+        // testmat.convertTo(testmat, CV_64F);
+
+        // float sobelf[5] = {1,2,0,-2,-1};
+        // float gaussianf[5] = {1,2,4,2,1};
+
+        // cv::Mat sobel(1, 5, CV_64F, sobelf);
+        // cv::Mat gaussian(1, 5, CV_64F, gaussianf);
+
+        // cv::sepFilter2D(testmat, outmatx, testmat.depth(), sobel, gaussian);
+        // cv::sepFilter2D(testmat, outmaty, testmat.depth(), gaussian, sobel);
+        
+
+        // outmaty = myThresh(outmaty, 160, -160);
+        // outmaty.convertTo(outmaty, CV_64F);
+
+        // outmatx =  myThresh(outmatx, 160, -160);
+        // outmatx.convertTo(outmatx, CV_64F);
+
+        // cv::pow(outmatx, 2, temp1);
+        // cv::pow(outmaty, 2, temp2);
+        // cv::sqrt(temp1 + temp2, temp);
+        // magMat = temp;
+        // magMat += cv::Scalar(1, 1, 1);
+
+        // printmat(magMat, 4);
+        // displayImage(magMat);
+
+        // temp3 = (outmatx + outmaty) / (magMat);
+        // orMat = temp3;
+        // std::pair<double, double> parsold = myNormMat(orMat, orMat);
+        // std::pair<double, double> parsNew(0, 255);
+        // myNormMatInv(orMat, orMat, parsNew);
+
+        // printmat(orMat, 4);
+        // displayImage(orMat);
+
+    //    ________________making grad orient hist__________________
+
+    // }
 
     return 0;
 }

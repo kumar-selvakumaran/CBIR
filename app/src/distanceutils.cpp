@@ -192,6 +192,8 @@ distanceMethod getDistanceMethod(std::string distanceMethodKey){
         distanceComputer = &euclideanDistance;
     } else if(distanceMethodKey == "HistogramIntersection"){
         distanceComputer = &HistogramIntersection;
+    } else if(distanceMethodKey == "upperLowerCropHistIntersect"){
+        distanceComputer = &upperLowerCropHistIntersect;
     }
 
     else {
@@ -203,21 +205,46 @@ distanceMethod getDistanceMethod(std::string distanceMethodKey){
 }
 
 bool toMinOrMax(std::string &distanceKey){
-    bool minimizeOrMaximize;
+    bool maximize;
 
     if (distanceKey == "EuclideanDistance"){
-        minimizeOrMaximize = false;
+        maximize = false;
     } else if(distanceKey == "HistogramIntersection"){
-        minimizeOrMaximize = true;
+        maximize = true;
+    } else if(distanceKey == "upperLowerCropHistIntersect"){
+        maximize = true;
     }
 
     else {
         std::cout << "\n DISTANCE METHOD INPUTTED INCORRECTLY OR NOT AT ALL \n";
-        minimizeOrMaximize = false;
+        maximize = false;
     }
 
-    return minimizeOrMaximize;
+    return maximize;
 }
+
+double rawEuclideanDistance(cv::Mat mat1, cv::Mat mat2){
+    cv::Mat temp1;
+
+    cv::pow(mat1 - mat2, 2, temp1);
+    
+    cv::Scalar channelSums = cv::sum(temp1);
+    double distance = channelSums[0] + channelSums[1] + channelSums[2] + channelSums[3];
+    
+    distance = sqrt(distance);
+    
+    return distance;
+}
+
+double rawHistogramIntersection(cv::Mat hist1, cv::Mat hist2){
+    cv::Mat histIntersect = cv::min(hist1, hist2);
+
+    cv::Scalar channelSums = cv::sum(histIntersect);
+    double similarity = channelSums[0] + channelSums[1] + channelSums[2] + channelSums[3];
+    
+    return similarity;
+}
+
 
 double euclideanDistance(std::vector<std::vector<double>> vec1, 
                         std::vector<std::vector<double>> vec2){
@@ -229,12 +256,11 @@ double euclideanDistance(std::vector<std::vector<double>> vec1,
 
     cv::Mat mat1(vec1[0]);
     cv::Mat mat2(vec2[0]);
+    
+    double distance;
 
-    cv::Mat temp1;
-    cv::pow(mat1 - mat2, 2, temp1);
-    cv::Scalar channelSums = cv::sum(temp1);
-    double distance = channelSums[0] + channelSums[1] + channelSums[2] + channelSums[3];
-    distance = sqrt(distance);
+    distance = rawEuclideanDistance(mat1, mat2);
+    
     return distance;
 }
 
@@ -246,15 +272,66 @@ double HistogramIntersection(std::vector<std::vector<double>> vec1,
         std::cout << "EUCLIDEAN DISTANCE FOR MULTIPLE FEATURES PER IMAGE IS NOT DEFINED\n";
     }
     
-    cv::Mat mat1(vec1[0]);
-    cv::Mat mat2(vec2[0]);
+    cv::Mat hist1(vec1[0]);
+    cv::Mat hist2(vec2[0]);
     
-    cv::Mat temp1;
-    temp1 = cv::min(mat1, mat2);
+    double similarity = rawHistogramIntersection(hist1, hist2);
+
+    return similarity;
+}
+
+
+
+/*
+1. interesects will be in range 0-1. 
+2. we want the value to be more than much higher if both upper and lower match
+    than we just 1 of the Crops match, infact, we we want to discriminate 
+    if even one of the Crops is a bad match.
+3. we choose to make the intersects >0 (by multiplying by 100) as good matches are
+    usually above 0.01. Finally, we take the product of the upper and lower intersects.
+4. With reference to the 2nd point, if a match is less than 1% of maximum possible value aka < 0.01, we set
+    the intersect to 0.9. so that the overall product is driven to be lower.
+    We cap the intersect, so as to not discriminate too much. We consider 1 quart matches over polarly opposite images.
+*/
+double upperLowerCropHistIntersect(std::vector<std::vector<double>> vec1,
+                                    std::vector<std::vector<double>> vec2){
+
+    if(vec1.size() == 1){
+        std::cout << "\n EXPECTED MORE THAN 1 FEATURE VECTOR \n(2 specificially, upper and lower histogram)\n";
+    }
+
+    cv::Scalar channelSums;
     
-    cv::Scalar channelSums = cv::sum(temp1);
-    double distance = channelSums[0] + channelSums[1] + channelSums[2] + channelSums[3];
-    return distance;
+    cv::Mat upper1(vec1[0]);
+    cv::Mat lower1(vec1[1]);
+    cv::Mat upper2(vec2[0]);
+    cv::Mat lower2(vec2[1]);
+
+    double upperIntersectValue = rawHistogramIntersection(upper1, upper2);
+    
+    double lowerIntersectValue = rawHistogramIntersection(lower1, lower2);
+    
+
+    // if(upperIntersectValue>0.01){
+    //     upperIntersectValue = upperIntersectValue * 100;
+    // } else {
+    //     upperIntersectValue = 0.9;
+    // }
+
+    // if(lowerIntersectValue>0.01){
+    //     lowerIntersectValue = lowerIntersectValue * 100;
+    // } else {
+    //     lowerIntersectValue = 0.9;
+    // }
+
+    // double similarity = upperIntersectValue * lowerIntersectValue;
+
+    //####################
+    upperIntersectValue = upperIntersectValue * 100;
+    lowerIntersectValue = lowerIntersectValue * 100;
+    double similarity = upperIntersectValue * lowerIntersectValue;
+    //####################
+    return similarity;
 }
 
 

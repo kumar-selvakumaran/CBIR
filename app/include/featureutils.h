@@ -53,8 +53,6 @@ class FeatureExtractor{
         
         bool checkPaths();
 
-        // void featuresToCsv(const std::vector<std::vector<float>>& data);
-
     public:
         // Constructor
         FeatureExtractor(std::string inDir, std::string outPath, std::string featureMethodKey);
@@ -69,6 +67,7 @@ featureMethod getFeatureMethod(std::string featureMethodKey);
 
 std::vector<std::vector<double>> baselineFeatures7x7(cv::Mat &src);
 std::vector<std::vector<double>> histFeature(cv::Mat &src);
-std::vector<std::vector<double>> upperLowerQuartersHist(cv::Mat &src);
+std::vector<std::vector<double>> upperLowerCropsHist(cv::Mat &src);
+std::vector<std::vector<double>> globalHog(cv::Mat &src);
 
 #endif // FEATUREUTILS_H

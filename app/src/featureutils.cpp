@@ -23,6 +23,7 @@ This progrogam stores the different feature extraction functions
 
 #include<featureutils.h>
 #include<utils.h>
+#include<hog.h>
 
 
 bool FeatureExtractor::checkPaths(){
@@ -46,24 +47,6 @@ bool FeatureExtractor::checkPaths(){
      
 }
 
-// void FeatureExtractor::featuresToCsv(const std::vector<std::vector<float>>& data) {
-//     // Open a file stream for writing
-//     std::ofstream outputCsv(csvOutPath);
-
-//     // Iterate over the 2D vector
-//     for (const auto& row : data) {
-//         for (size_t i = 0; i < row.size(); ++i) {
-//             outputCsv << row[i]; // Write the current element
-//             if (i < row.size() - 1) {
-//                 outputCsv << ","; // Add comma for separation except for the last element
-//             }
-//         }
-//         outputCsv << "\n"; // End of row
-//     }
-//     // Close the file
-//     outputCsv.close();
-// }
-
 FeatureExtractor::FeatureExtractor(
     std::string inDir,
     std::string outPath,
@@ -86,6 +69,8 @@ bool FeatureExtractor::computeFeatures(){
     DIR *dirp;
     struct dirent *dp;
     int i;
+    int progress = 0;
+
     
     dirp = opendir(imgdbdir.c_str());
 
@@ -101,8 +86,13 @@ bool FeatureExtractor::computeFeatures(){
             buffer = imgdbdir;
             // std::cout<< " \n " << buffer << "\n" ;
             buffer += dp->d_name;
-            // std::cout<< " \n full buffer " << buffer << "\n" ;
 
+            //#################################################
+            if(progress %10 ==0){
+                std::cout<< " \n full buffer " << buffer << "\n";
+            } 
+            progress++;
+            //#################################################
 
             //read the image
             cv::Mat dbim = cv::imread(buffer, cv::IMREAD_COLOR);
@@ -161,8 +151,10 @@ featureMethod getFeatureMethod(std::string featureMethodKey){
         featureComputer = &baselineFeatures7x7; 
     } else if (featureMethodKey == "Histogram") {
         featureComputer = &histFeature;
-    } else if (featureMethodKey == "upperLowerQuartersHist"){
-        featureComputer = &upperLowerQuartersHist;
+    } else if (featureMethodKey == "upperLowerCropsHist"){
+        featureComputer = &upperLowerCropsHist;
+    } else if (featureMethodKey == "globalHog"){
+        featureComputer = &globalHog;
     }
  
     else {
@@ -216,46 +208,61 @@ It hopes to help compute outdoor images of a similar type. Eg:
 blue sky + greenery, blue sky + infrastucture, yellow-red sky + infrastructure.
 given an indoor image, it returns images of a similar backround
 
-This feaature returns the upper and lower quarter of the image
+This feaature returns the upper and lower Crop of the image
 */
-std::vector<std::vector<double>> upperLowerQuartersHist(cv::Mat &src){
+std::vector<std::vector<double>> upperLowerCropsHist(cv::Mat &src){
     
-    cv::Mat histUpperQuarter;
-    cv::Mat histLowerQuarter;
+    cv::Mat histUpperCrop;
+    cv::Mat histLowerCrop;
 
-    int upperQuarterRowStart = 0;
-    int upperQuarterColStart = 0;
-    int upperQuarterRowEnd = (int)(src.rows/4);
-    int upperQuarterColEnd = src.cols;
+    int upperCropRowStart = 0;
+    int upperCropColStart = 0;
+    int upperCropRowEnd = (int)(src.rows/4);
+    int upperCropColEnd = src.cols;
 
-    cv::Mat upperQuarter;
-
-    src(
-        cv::Range(upperQuarterRowStart, upperQuarterRowEnd),
-        cv::Range(upperQuarterColStart, upperQuarterColEnd)
-        ).copyTo(upperQuarter);
-
-    histUpperQuarter = makeHist(upperQuarter, 8); 
-
-    int lowerQuarterRowStart = (int)(3*(src.rows/4));
-    int lowerQuarterColStart = 0;
-    int lowerQuarterRowEnd = src.rows;
-    int lowerQuarterColEnd = src.cols;
-
-    cv::Mat lowerQuarter;
+    cv::Mat upperCrop;
 
     src(
-        cv::Range(lowerQuarterRowStart, lowerQuarterRowEnd),
-        cv::Range(lowerQuarterColStart, lowerQuarterColEnd)
-        ).copyTo(lowerQuarter);
+        cv::Range(upperCropRowStart, upperCropRowEnd),
+        cv::Range(upperCropColStart, upperCropColEnd)
+        ).copyTo(upperCrop);
+
+    histUpperCrop = makeHist(upperCrop, 8); 
+
+    int lowerCropRowStart = (int)(3*(src.rows/4));
+    int lowerCropColStart = 0;
+    int lowerCropRowEnd = src.rows;
+    int lowerCropColEnd = src.cols;
+
+    cv::Mat lowerCrop;
+
+    src(
+        cv::Range(lowerCropRowStart, lowerCropRowEnd),
+        cv::Range(lowerCropColStart, lowerCropColEnd)
+        ).copyTo(lowerCrop);
 
 
-    histLowerQuarter = makeHist(lowerQuarter, 8); 
+    histLowerCrop = makeHist(lowerCrop, 8); 
 
     std::vector<std::vector<double>> features;
-    features.push_back(histUpperQuarter.reshape(1,1));
-    features.push_back(histLowerQuarter.reshape(1,1));
+    features.push_back(histUpperCrop.reshape(1,1));
+    features.push_back(histLowerCrop.reshape(1,1));
 
     return features;
 
+}
+
+std::vector<std::vector<double>> globalHog(cv::Mat &src){
+
+    cv::Mat hist;
+
+    hog hogComputer(5, 160, -160, 16, 5);
+
+    hist = hogComputer.computeGlobalHogV1(src);   
+    // hist = hogComputer.computeGlobalHog(src);   
+    
+    std::vector<std::vector<double>> features;
+    features.push_back(hist.reshape(1,1));
+
+    return features;
 }

@@ -20,22 +20,7 @@ This progrogam stores the different feature extraction functions
 #include <sstream>
 #include <vector>
 
-
 #include <utils.h>
-
-// std::vector<float> myMatToVec(cv::Mat &src){
-//     std::vector<float> vecMat;
-//     if (src.isContinuous()) {
-//         // array.assign((float*)mat.datastart, (float*)mat.dataend); // <- has problems for sub-matrix like mat = big_mat.row(i)
-//         vecMat.assign((float*)src.data, (float*)src.data + src.total()*src.channels());
-//     } else {
-//         for (int i = 0; i < src.rows; ++i) {
-//             vecMat.insert(vecMat.end(), src.ptr<float>(i), src.ptr<float>(i)+src.cols*src.channels());
-//         }
-//     }
-
-//     return vecMat;
-// }
 
 std::string myMatType(cv::Mat &src) {
     int type = src.type();
@@ -69,8 +54,32 @@ void printmat(cv::Mat &src, int vizdim)
     int yMin = yMax - std::min(vizdim, src.cols);
     cv::Mat vizslice(src(cv::Range(xMin, xMax), cv::Range(yMin, yMax)));
     std::cout << "\nmatrix chunk : \n" << format(vizslice, cv::Formatter::FMT_NUMPY );
-    std::cout << "\nchannels : " << src.channels() << " type : " << myMatType(src) << "\n";
-    
+    double minVal;
+    double maxVal;
+    cv::minMaxLoc(src, &minVal, &maxVal);
+    std::cout << "\nchannels : " << src.channels() << " type : " << myMatType(src); 
+    std::cout << " Min val : " << minVal << " Max val : " << maxVal;
+    std::cout << " rows : " << src.rows << " cols : " << src.cols << "\n";
+
+}
+
+std::pair<double, double> myNormMat(cv::Mat &src, cv::Mat &dst){
+    double minVal;
+    double maxVal;
+    cv::minMaxLoc(src, &minVal, &maxVal);
+    dst = src.clone();
+    if(maxVal != minVal){
+        dst = (dst - minVal) / (maxVal - minVal);
+    }    
+    std::pair<double, double> pars(minVal, maxVal);
+    return pars;
+}
+
+void myNormMatInv(cv::Mat &src, cv::Mat &dst, std::pair<double, double> pars){
+    double minVal = pars.first;
+    double maxVal = pars.second;
+    dst = src.clone();
+    dst = (dst * (maxVal - minVal)) + minVal;
 }
 
 // int kmeans( std::vector<cv::Vec3b> &data,
@@ -189,4 +198,119 @@ int earliestDecPos(double num){
     return reqpos;
 }
 
+void displayImage(cv::Mat &img){
+    cv::Mat vizim = img.clone();
+    vizim.convertTo(vizim, CV_8U);
+    cv::namedWindow("viz image");
+    cv::imshow("viz image", vizim);
+    cv::waitKey(0);
+}
 
+cv::Mat myThresh(cv::Mat &img, int postThresh, int negThresh){
+    cv::Mat neg, pos;
+    pos = (img >= postThresh) / 255;
+    neg = (img <= negThresh) / 255;
+
+    cv::Mat out;  
+    out = pos + neg;
+
+    out.convertTo(out, CV_64F);
+
+    cv::multiply(out, img, out);
+
+    return out;
+}
+
+
+
+// int texture(cv::Mat &src, cv::Mat &dst, float filterData1dRow[], float filterData1dCol[], bool isX)
+// {
+//     cv::Mat procFrame = src.clone();
+//     cv::Mat filterRow;
+//     cv::Mat filterCol;
+    
+//     if(isX){
+//         filterRow = cv::Mat(1, 5, CV_64F, filterData1dRow);
+//         filterCol = cv::Mat(5, 1, CV_64F, filterData1dCol);
+//     } else {
+//         filterRow = cv::Mat(1, 5, CV_64F, filterData1dCol);
+//         filterCol = cv::Mat(5, 1, CV_64F, filterData1dRow);
+//     }
+
+//     cv::Size dimsFrame = procFrame.size();
+//     int numColsFrame = dimsFrame.width;
+//     int numRowsFrame = dimsFrame.height;
+//     cv::Size dimsFilter = filterRow.size();
+//     int numColsFilter = dimsFilter.width;
+//     int numRowsFilter = dimsFilter.height;
+//     int r, c, ch; 
+//     cv::Mat ogChannels[3], procChannels[3];
+//     procFrame.convertTo(procFrame, CV_64F);
+//     cv::split(procFrame, procChannels);
+//     cv::split(procFrame, ogChannels);
+//     int numiters = 0;
+//     int offset = numColsFilter / 2;
+//     int normer = 1;
+//     for(ch = 0; ch < 3; ch++)
+//     {
+//         for(c = 0; c < (numColsFrame - numColsFilter + 1); c++)
+//         {
+//             cv::Mat colSlice = ogChannels[ch].colRange(c, c+numColsFilter); 
+//             cv::Mat interim = filterRow * colSlice.t();
+//             interim = interim.t();
+//             interim = interim / normer;
+//             interim.copyTo(procChannels[ch].col(offset + c));
+//         }
+//     }
+//     for(ch = 0 ; ch < 3 ; ch++)
+//     {
+//         procChannels[ch].copyTo(ogChannels[ch]);
+//     }
+//     normer = 1; 
+//     for(ch = 0; ch < 3; ch++)
+//     {
+//         for(r = 0; r < (numRowsFrame - numColsFilter + 1); r++)
+//         {
+//             cv::Mat rowSlice(ogChannels[ch].rowRange(r, r+numColsFilter)); 
+//             cv::Mat interim(filterCol.t() * rowSlice);
+//             interim = interim / normer;
+//             interim.copyTo(procChannels[ch].row(r));
+//         }
+//     }
+//     cv::Mat outChannels[3];
+//     cv::split(procFrame, outChannels);
+//     for(ch = 0 ; ch < 3 ; ch++)
+//     {
+//         cv::Rect toroi(offset, offset, numColsFrame - numColsFilter + 1, numRowsFrame - numColsFilter + 1);
+//         cv::Rect fromroi(0, 0, numColsFrame - numColsFilter + 1, numRowsFrame - numColsFilter + 1);
+//         procChannels[ch](fromroi).copyTo(outChannels[ch](toroi));
+//     }
+//     cv::merge(outChannels, 3, dst);
+
+//     return 1;
+// }
+
+// int magnitude(Mat &sx, Mat &sy, Mat &dst)
+// {
+//     // dst.convertTo(dst, CV_16SC3);
+//     sx.convertTo(sx, CV_64FC3);
+//     sy.convertTo(sy, CV_64FC3);
+//     dst.convertTo(dst, CV_64FC3);
+
+//     cv::Mat outChannels[3], xChannels[3], yChannels[3];
+
+//     cv::split(dst, outChannels);
+//     cv::split(sx, xChannels);
+//     cv::split(sy, yChannels);
+
+//     int ch;
+//     for(ch = 0 ; ch < 3 ; ch++ )
+//     {
+//         outChannels[ch] = (yChannels[ch].mul(yChannels[ch])) + (xChannels[ch].mul(xChannels[ch])) ;
+//         sqrt(outChannels[ch], outChannels[ch]);
+//     }
+
+//     cv::merge(outChannels, 3, dst);
+
+//     return 1;
+// }

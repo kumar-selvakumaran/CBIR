@@ -14,7 +14,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-// #include<utils.h>
+#include<utils.h>
 
 
 template<typename T>
@@ -28,7 +28,6 @@ void myPrintVec(std::vector<T> &vec) {
     }
     std::cout << "]\t" << std::endl;
 }
-
 
 
 template <typename T>
@@ -46,6 +45,7 @@ std::vector<size_t> sortIndices(std::vector<T> &array, bool descending = false) 
 }
 
 
+// std::vector<float> myMatToVec(cv::Mat &src);
 std::string myMatType(cv::Mat &src);
 void printmat(cv::Mat &src, int vizdim);
 int earliestDecPos(double num);

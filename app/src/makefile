@@ -23,7 +23,7 @@ FEATURES = features.csv
 
 # Distance computaation requisites
 TASK = distanceFinding
-TARGET = pic.1016.jpg
+TARGET = pic.0571.jpg
 DISTANCETYPE = EuclideanDistance
 NUMIMAGES = 5
 
@@ -41,7 +41,7 @@ NUMIMAGES = 5
 # 	$(CC) $^ -o $(BINDIR)/$(TASK) $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
 # 	$(BINDIR)/$(TASK) $(DATA)$(FEATURES) $(DISTANCETYPE) $(DATA)$(IMDIR)/$(TARGET) $(NUMIMAGES)
 
-app: playground.cpp distanceutils.cpp featureutils.cpp utils.cpp
+app: playground.cpp distanceutils.cpp featureutils.cpp utils.cpp hog.cpp
 	$(CC) $^ -o $(BINDIR)/playground $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
 	$(BINDIR)/playground
 

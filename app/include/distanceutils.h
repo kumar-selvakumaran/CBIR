@@ -76,10 +76,15 @@ class DistanceFinder{
 
 };
 
+double rawEuclideanDistance(cv::Mat mat1, cv::Mat mat2);
+
+double rawHistogramIntersection(cv::Mat hist1, cv::Mat hist2);
 
 double euclideanDistance(std::vector<std::vector<double>> vec1, std::vector<std::vector<double>> vec2);
 
 double HistogramIntersection(std::vector<std::vector<double>> vec1, std::vector<std::vector<double>> vec2);
+
+double upperLowerCropHistIntersect(std::vector<std::vector<double>> vec1, std::vector<std::vector<double>> vec2);
 
 distanceMethod getDistanceMethod(std::string distanceMethodKey);
 
