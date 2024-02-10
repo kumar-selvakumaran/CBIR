@@ -49,6 +49,7 @@ class FeatureExtractor{
         // Private member variable
         std::string imgdbdir;
         std::string csvOutPath;
+        std::string featureName;
         featureMethod featureComputer;
         
         bool checkPaths();
@@ -69,5 +70,6 @@ std::vector<std::vector<double>> baselineFeatures7x7(cv::Mat &src);
 std::vector<std::vector<double>> histFeature(cv::Mat &src);
 std::vector<std::vector<double>> upperLowerCropsHist(cv::Mat &src);
 std::vector<std::vector<double>> globalHog(cv::Mat &src);
+void readDnnFeatures();
 
 #endif // FEATUREUTILS_H

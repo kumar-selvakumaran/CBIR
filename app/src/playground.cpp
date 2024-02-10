@@ -36,17 +36,17 @@ int main(int argc, char *argv[]) {
 
 
     // //____________ENTER FEATURE TYPE_____________________________________________
-    // std::string featureType{"globalHog"};
-    // //___________________________________________________________________________
+    std::string featureType{"Resnet"};
+    //___________________________________________________________________________
 
-    // std::cout << "\n going to initialize feature extractor \n";
+    std::cout << "\n going to initialize feature extractor \n";
 
-    // FeatureExtractor featureExtractor{FeatureExtractor(dataDir,  featurePath, featureType)};
+    FeatureExtractor featureExtractor{FeatureExtractor(dataDir,  featurePath, featureType)};
 
-    // std::cout << "\n initialized feature extractor, going to compute the features \n";
-    // featureExtractor.computeFeatures();
+    std::cout << "\n initialized feature extractor, going to compute the features \n";
+    featureExtractor.computeFeatures();
 
-    // std::cout << "\n FINISHED COMPUTING THE FEATURES \n";
+    std::cout << "\n FINISHED COMPUTING THE FEATURES \n";
 
 
     //___________ENTER DISTANCE TYPE and NUM IMAGES TO DISTPLAY__________________

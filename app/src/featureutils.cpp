@@ -55,6 +55,7 @@ FeatureExtractor::FeatureExtractor(
     this->imgdbdir = inDir;     
     this->csvOutPath = outPath;
     this->featureComputer = getFeatureMethod(featureMethodKey); 
+    this->featureName = featureMethodKey;
 
     bool status = checkPaths();
 
@@ -71,6 +72,10 @@ bool FeatureExtractor::computeFeatures(){
     int i;
     int progress = 0;
 
+    if(featureName == "Resnet"){
+        readDnnFeatures();
+        return true;
+    }
     
     dirp = opendir(imgdbdir.c_str());
 
@@ -265,4 +270,52 @@ std::vector<std::vector<double>> globalHog(cv::Mat &src){
     features.push_back(hist.reshape(1,1));
 
     return features;
+}
+
+
+void readDnnFeatures(){
+    std::string buffer;
+    int i;
+    std::string fileName;
+    std::string csvOutPath{"../data/features.csv"};
+    std::string imgdbdir{"../data/olympus/olympus/"};
+
+    std::string nnPath{"../data/ResNet18_olym.csv"};
+
+    std::ofstream outputCsv(csvOutPath.c_str());
+    
+    std::ifstream featurecsv(nnPath);
+
+    std::string line;
+    std::string imPath;
+
+    while(std::getline(featurecsv, line)){
+        std::stringstream ss(line);
+        std::string element;
+        std::vector<double> feature;
+        std::vector<std::vector<double>> features;
+        buffer = imgdbdir;
+        std::getline(ss, fileName, ',');
+
+        buffer += fileName;
+
+        outputCsv << buffer << "\n";
+
+        bool isFirst = true;
+        while(std::getline(ss, element, ',')){
+            if(element == "<SEP>"){
+                outputCsv << element;
+                outputCsv << ",";
+            } else {
+                double value;
+                std::istringstream(element) >> value;
+                if(isFirst != true){
+                    outputCsv << ",";
+                }
+                isFirst = false;
+                outputCsv << value;   
+            }
+        }
+        outputCsv << "\n";
+    }
 }
