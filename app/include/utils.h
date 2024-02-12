@@ -29,8 +29,6 @@ void myPrintVec(std::vector<T> &vec) {
     std::cout << "]\t" << std::endl;
 }
 
-
-
 template <typename T>
 std::vector<size_t> sortIndices(std::vector<T> &array, bool descending = false) {
     std::vector<size_t> indices(array.size());
@@ -50,15 +48,6 @@ std::string myMatType(cv::Mat &src);
 void printmat(cv::Mat &src, int vizdim);
 int earliestDecPos(double num);
 
-
-
-
-
-
-#define SSD(a, b) ( ((int)a[0]-b[0])*(a[0]-b[0]) + (a[1]-b[1])*(a[1]-b[1]) + (a[2]-b[2])*(a[2]-b[2]) )
-
-int kmeans( std::vector<cv::Vec3b> &data, std::vector<cv::Vec3b> &means, int *labels, int K, int maxIterations=10, int stopThresh=0 );
-
 cv::Mat makeHist(cv::Mat &src, int numBins);
 
 // int magnitude(Mat &sx, Mat &sy, Mat &dst)
@@ -70,6 +59,14 @@ cv::Mat myThresh(cv::Mat &img, int postThresh, int negThresh);
 std::pair<double, double> myNormMat(cv::Mat &src, cv::Mat &dst);
 
 void myNormMatInv(cv::Mat &src, cv::Mat &dst, std::pair<double, double> pars);
+
+std::pair<double, double> myNormVec(std::vector<double> &src, std::vector<double> &dst);
+
+void emphEdges(cv::Mat &src, cv::Mat &dst);
+
+void getEdgeImage(cv::Mat &src, cv::Mat &dst);
+
+// void slide(cv::Mat &src, cv::Mat &filter, cv::);
 
 #endif // UTILS_H
 

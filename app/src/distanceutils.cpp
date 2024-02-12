@@ -20,10 +20,12 @@ This progrogam stores the different feature extraction functions
 #include <sstream>
 #include <vector>
 #include <cmath>
+#include <float.h>
 
 
 #include <distanceutils.h>
 #include <utils.h>
+#include <featureutils.h>
 
 
 bool DistanceFinder::pathOpened(std::string dirpath){
@@ -38,7 +40,8 @@ bool DistanceFinder::pathOpened(std::string dirpath){
 DistanceFinder::DistanceFinder(
     std::string featurePath,
     std::string targetPath,
-    std::string distanceMethodKey
+    std::string distanceMethodKey,
+    std::string targetFeaturekey
     ){
         bool status = pathOpened(featurePath);
 
@@ -51,7 +54,8 @@ DistanceFinder::DistanceFinder(
         this->targetPath = targetPath; 
         this->distanceName = distanceMethodKey;
         this->distanceComputer = getDistanceMethod(this->distanceName);
-
+        this->targetFeatureName = targetFeaturekey;
+        this->targetFeatureComputer = getFeatureMethod(this->targetFeatureName);
         loadFeatures();
 }
 
@@ -114,20 +118,39 @@ bool DistanceFinder::computeDistances(){
     // std::cout << "target path : \t " << targetPath <<"\n";
     // printmat(targetMat, 5);
     // //#################
-    std::vector<std::vector<double>> targetVec(featureMap[targetPath]);
+    
+    //------- READING FROM FEATURES.CSV ------
+    // std::vector<std::vector<double>> targetVec(featureMap[targetPath]);
+    //----------------------------------------
+
+    //------- RECOMPUTING IN RUNTIME ----------
+    std::vector<std::vector<double>> targetVec;
+    cv::Mat targetImage = cv::imread(targetPath, cv::IMREAD_COLOR);
+    targetVec = targetFeatureComputer(targetImage);
+    //-----------------------------------------
 
     int pos = 0;
 
+    bool maximize = toMinOrMax(distanceName);
+    
     while(it != featureMap.end()){
+        double distance;
         std::string imPath = it->first;
-        // std::cout << "\nloaded impath : \t " << imPath <<" loading MAT\n";
-        // cv::Mat featureMat(it->second);
         std::vector<std::vector<double>> featureVec = it->second;
         // std::cout << "\nloaded featurevec, computing distances\n";
         // printmat(featureMat, 4);
         // std::cout <<"\nerror not in printmat\n";
-        double distance = distanceComputer(targetVec, featureVec);
-        // std::cout << "\ncomputed distances\n";
+        if(distanceName != "stridedEuclideanDistance"){
+            distance = distanceComputer(targetVec, featureVec);
+        }
+        //######------SLIDING DISANCE COMPUTER------###########
+        else {
+            std::cout << "\n###################\n using hardcoded distance metric\n#########################";
+            rawDistanceMethod distancegetter = &rawEuclideanDistance;
+            distance = stridedDistanceComputer(targetVec, featureVec, distancegetter, maximize);
+        }
+        //######------SLIDING DISTANCE CMPUTER END---##########
+        
         distances[pos] = distance;
         imPaths[pos] = imPath;
 
@@ -135,8 +158,6 @@ bool DistanceFinder::computeDistances(){
         it++;
     }
     
-    bool maximize = toMinOrMax(distanceName);
-
     std::vector<size_t> sortedDistInds = sortIndices(distances, maximize);
 
     for(size_t i = 0 ; i < sortedDistInds.size() ; i++){
@@ -189,7 +210,7 @@ distanceMethod getDistanceMethod(std::string distanceMethodKey){
     distanceMethod distanceComputer;
     
     if (distanceMethodKey == "EuclideanDistance"){
-        distanceComputer = &euclideanDistance;
+        distanceComputer = &simpeEuclideanDistance;
     } else if(distanceMethodKey == "HistogramIntersection"){
         distanceComputer = &HistogramIntersection;
     } else if(distanceMethodKey == "upperLowerCropHistIntersect"){
@@ -198,7 +219,7 @@ distanceMethod getDistanceMethod(std::string distanceMethodKey){
 
     else {
         std::cout << "\n DISTANCE METHOD INPUTTED INCORRECTLY OR NOT AT ALL \n";
-        distanceComputer = &euclideanDistance;
+        distanceComputer = &simpeEuclideanDistance;
     }
 
     return distanceComputer;
@@ -246,17 +267,44 @@ double rawHistogramIntersection(cv::Mat hist1, cv::Mat hist2){
 }
 
 
-double euclideanDistance(std::vector<std::vector<double>> vec1, 
+double simpeEuclideanDistance(std::vector<std::vector<double>> vec1, 
                         std::vector<std::vector<double>> vec2){
     
-    if(vec1.size() > 1){
-        std::cout << "\n NUMBER OF FEATURES GREATER THAN 1 FOR EUCLIDEAN DISTANCE COMPUTATION";
-        std::cout << "EUCLIDEAN DISTANCE FOR MULTIPLE FEATURES PER IMAGE IS NOT DEFINED\n";
+    std::vector<double>features1;
+    std::vector<double>features2;
+
+    for(size_t i  = 0 ; i < vec1.size() ; i++){
+        
+
+        
+        //---------------NORMALIZE-----------------
+        // cv::Mat temp1(vec1[i]);
+        // cv::Mat temp2(vec2[i]);
+
+        // std::pair<double, double> minMaxVals;
+        // minMaxVals = myNormMat(temp1, temp1);
+        // minMaxVals = myNormMat(temp2, temp2);
+        
+        // temp1 = temp1 * 1000;
+        // temp2 = temp2 * 1000;
+
+        // std::vector<double> vecTemp1 = temp1;
+        // std::vector<double> vecTemp2 = temp2;
+        //-------------------------------------------
+        //------------DONT NORMALIZE-----------------
+        std::vector<double> vecTemp1 = vec1[i];
+        std::vector<double> vecTemp2 = vec2[i];        
+
+        features1.reserve(features1.size() + std::distance(vecTemp1.begin(), vecTemp1.end()));
+        features1.insert(features1.end(), vecTemp1.begin(), vecTemp1.end());   
+
+        features2.reserve(features2.size() + std::distance(vecTemp2.begin(), vecTemp2.end()));
+        features2.insert(features2.end(), vecTemp2.begin(), vecTemp2.end());   
     }
 
-    cv::Mat mat1(vec1[0]);
-    cv::Mat mat2(vec2[0]);
-    
+    cv::Mat mat1(features1);
+    cv::Mat mat2(features2);
+
     double distance;
 
     distance = rawEuclideanDistance(mat1, mat2);
@@ -334,4 +382,63 @@ double upperLowerCropHistIntersect(std::vector<std::vector<double>> vec1,
     return similarity;
 }
 
+double stridedDistanceComputer(std::vector<std::vector<double>> target,
+                                std::vector<std::vector<double>> vec2,
+                                rawDistanceMethod distanceGetter,
+                                bool maximize){
+    
+    int numFeatures = target.size();
+    int numCrops = vec2.size() / numFeatures;
+    double optDistance;
+    std::cout << "\n maximize : " << maximize << "\n"; 
+    if(maximize == true){
+        optDistance = 0;
+    } else {
+        optDistance = DBL_MAX;
+    }
+    std::vector<double> targetVec;
+    
+
+    for (int i = 0 ; i < numFeatures ; i++){
+        targetVec.reserve(targetVec.size() + std::distance(target[i].begin(), target[i].end()));
+        targetVec.insert(targetVec.end(), target[i].begin(), target[i].end());  
+    }
+
+    std::cout << "\n going to compute distances for each crop\n";
+    for(int i = 0 ; i < numCrops ; i ++){
+        std::vector<double> featureVec;
+        std::cout << "\n crop num :" << i << "\n";
+        
+        for(int j = 0 ; j < numFeatures; j++){
+            featureVec.reserve(featureVec.size() + std::distance(vec2[i+j].begin(), vec2[i+j].end()));
+            featureVec.insert(featureVec.end(), vec2[i+j].begin(), vec2[i+j].end());   
+        }
+        
+        std::cout << "\n made concatenated feature vector, computing distance now \n";
+
+        cv::Mat mat1(targetVec);
+        cv::Mat mat2(featureVec);
+
+        double distance;
+
+        distance = distanceGetter(mat1, mat2);
+
+        std::cout << "\n computed distance for crop : " << distance << "\n";
+
+        
+        if(maximize == true){
+            if(distance > optDistance){
+                optDistance = distance;
+            }
+        } else {
+            if(distance < optDistance){
+                optDistance = distance;
+            }
+        }
+            
+    }
+
+    std::cout << "\n final distance : "<< optDistance << "\n";
+    return optDistance;   
+}
 

@@ -7,12 +7,16 @@
 #include <opencv2/imgproc.hpp>
 #include <map>
 
+#include <featureutils.h>
+
 #ifndef DISTANCEUTILS_H
 #define DISTANCEUTILS_H
 
 // #include<distanceutils.h>
 
 typedef double (*distanceMethod)(std::vector<std::vector<double>> vec1, std::vector<std::vector<double>> vec2); 
+
+typedef double (*rawDistanceMethod)(cv::Mat mat1, cv::Mat mat2); 
 
 /*
 Given a directory on the command line, scans through the directory for image
@@ -51,6 +55,8 @@ class DistanceFinder{
         std::string targetPath;
         std::string distanceName;
         distanceMethod distanceComputer;
+        featureMethod targetFeatureComputer;
+        std::string targetFeatureName;
         std::vector<double> distances;
         std::map<std::string, std::vector<std::vector<double>>> featureMap;
         std::vector<double> distancesSorted;
@@ -60,7 +66,7 @@ class DistanceFinder{
     public:
     
         // Constructor
-        DistanceFinder(std::string featurePath, std::string targetPath, std::string distanceMethodKey);
+        DistanceFinder(std::string featurePath, std::string targetPath, std::string distanceMethodKey, std::string targetFeaturekey);
         // Destructor
         // ~DistanceFinder();
 
@@ -80,13 +86,15 @@ double rawEuclideanDistance(cv::Mat mat1, cv::Mat mat2);
 
 double rawHistogramIntersection(cv::Mat hist1, cv::Mat hist2);
 
-double euclideanDistance(std::vector<std::vector<double>> vec1, std::vector<std::vector<double>> vec2);
+double simpeEuclideanDistance(std::vector<std::vector<double>> vec1, std::vector<std::vector<double>> vec2);
 
 double HistogramIntersection(std::vector<std::vector<double>> vec1, std::vector<std::vector<double>> vec2);
 
 double upperLowerCropHistIntersect(std::vector<std::vector<double>> vec1, std::vector<std::vector<double>> vec2);
 
 distanceMethod getDistanceMethod(std::string distanceMethodKey);
+
+double stridedDistanceComputer(std::vector<std::vector<double>> target, std::vector<std::vector<double>> vec2, rawDistanceMethod distanceGetter, bool maximize);
 
 bool toMinOrMax(std::string &distanceKey);
 

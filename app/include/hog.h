@@ -30,31 +30,28 @@ typedef cv::Vec<double, 9 > Vec9d;
 typedef cv::Vec<double, 10 >Vec10d;
 
 class hog{
-    // private:
-    public:
+    private:
         int blurrKernelSize;
         int threshPositive;
         int threshNegative;
         int globalIntensityBins;
         int globalOrientationBins;
 
-        cv::Mat computeGrad(cv::Mat &src, bool isX);
-        cv::Mat computeMagnitude(cv::Mat &gradX, cv::Mat &gradY);
-        cv::Mat computeOrientation(cv::Mat &gradX, cv::Mat &gradY);
-        
-        cv::Mat compressLocalHogs(cv::Mat &localHogs);
 
-    // public:
+    public:
         hog(int blurrKernelSize,
             int threshPositive,
             int theshNegative,
             int globalIntensityBins,
             int globalOrientationBins);
         
-        cv::Mat computeGlobalHogV1(cv::Mat &src);
+        
+        cv::Mat computeGrad(cv::Mat &src, bool isX);
+        cv::Mat computeMagnitude(cv::Mat &gradX, cv::Mat &gradY);
+        cv::Mat computeOrientation(cv::Mat &gradX, cv::Mat &gradY);
+        cv::Mat computeGlobalHogV1(cv::Mat &src);   
         cv::Mat computeGlobalHog(cv::Mat &src);
         
-        // cv::Mat computeLocalHogs(cv::Mat &src);
 };
 
 

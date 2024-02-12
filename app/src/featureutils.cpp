@@ -50,12 +50,15 @@ bool FeatureExtractor::checkPaths(){
 FeatureExtractor::FeatureExtractor(
     std::string inDir,
     std::string outPath,
-    std::string featureMethodKey
+    std::string featureMethodKey,
+    bool useStridedFeatures
 ){
     this->imgdbdir = inDir;     
     this->csvOutPath = outPath;
     this->featureComputer = getFeatureMethod(featureMethodKey); 
     this->featureName = featureMethodKey;
+    this->useStridedFeatures = useStridedFeatures;
+
 
     bool status = checkPaths();
 
@@ -106,7 +109,16 @@ bool FeatureExtractor::computeFeatures(){
             //compute the feature vector
             std::vector<std::vector<double>> features;
 
-            features = featureComputer(dbim);
+            if (useStridedFeatures == false){
+                features = featureComputer(dbim);
+            }
+            //####################----SLIDING APPLIER START----##############
+            else if(useStridedFeatures == true){
+                int kernelSize = dbim.size().width / 3;
+                features = slidingExtraction(dbim, featureComputer, kernelSize);
+            }
+            //####################----SLIDING APPLIER END----##############
+            
             //store feature in the feature db
 
             outputCsv << buffer << "\n";
@@ -160,6 +172,8 @@ featureMethod getFeatureMethod(std::string featureMethodKey){
         featureComputer = &upperLowerCropsHist;
     } else if (featureMethodKey == "globalHog"){
         featureComputer = &globalHog;
+    } else if (featureMethodKey == "globalHogandColour"){
+        featureComputer = &globalHogandColour;
     }
  
     else {
@@ -261,7 +275,7 @@ std::vector<std::vector<double>> globalHog(cv::Mat &src){
 
     cv::Mat hist;
 
-    hog hogComputer(5, 160, -160, 16, 5);
+    hog hogComputer(5, 160, -160, 3, 5);
 
     hist = hogComputer.computeGlobalHogV1(src);   
     // hist = hogComputer.computeGlobalHog(src);   
@@ -272,6 +286,27 @@ std::vector<std::vector<double>> globalHog(cv::Mat &src){
     return features;
 }
 
+std::vector<std::vector<double>> globalHogandColour(cv::Mat &src){
+    cv::Mat histHog;
+    cv::Mat histCol;
+
+    int chromBins = 8;
+    int orBins = 2;
+
+    hog hogComputer(5, 160, -160, 3, orBins);
+
+    histHog = hogComputer.computeGlobalHogV1(src);   
+    // hist = hogComputer.computeGlobalHog(src);   
+    
+    histCol = makeHist(src, chromBins);
+
+    std::vector<std::vector<double>> features;
+
+    features.push_back(histHog.reshape(1,1));
+    features.push_back(histCol.reshape(1,1));
+
+    return features;
+}
 
 void readDnnFeatures(){
     std::string buffer;
@@ -319,3 +354,50 @@ void readDnnFeatures(){
         outputCsv << "\n";
     }
 }
+
+std::vector<std::vector<double>> slidingExtraction (cv::Mat &src, featureMethod featureSlide, int kernelSize){
+    cv::Mat imCrop;
+    std::vector<std::vector<double>> features;
+
+    int width = src.size().width;
+    int height = src.size().height;
+    
+    int numStridesHor = std::ceil(double(width) / (double)kernelSize);
+    int numStridesVert = std::ceil(double(height) / (double)kernelSize);
+    // std::cout << "\n kernel size : " << kernelSize << " rows : " << numStridesHor << " cols : " << numStridesVert << "\n";
+    for(int rStride = 0 ; rStride < numStridesVert ; rStride++){
+        for(int cStride = 0 ; cStride < numStridesVert ; cStride++){
+            int xmin = rStride * kernelSize;
+            int ymin = cStride * kernelSize;
+            int strideWidth = std::min(width - xmin, kernelSize);
+            int strideHeight = std::min(height - ymin, kernelSize);
+            // std::cout << "crop : xmin : "<< xmin << " ymin : " << ymin << " strideWith : ";
+            // std::cout << strideWidth << " strideHeight : " << strideHeight << "\n";
+            cv::Rect crop(xmin, ymin, strideWidth, strideHeight);
+            src(crop).copyTo(imCrop);
+            std::vector<std::vector<double>> cropFeatures;
+            cropFeatures = featureSlide(imCrop);
+
+            for(size_t i = 0 ; i < cropFeatures.size() ; i++){
+                features.push_back(cropFeatures[i]);
+             }   
+
+             //#############
+            //  displayImage(imCrop);
+             //#############
+         }
+    }
+    return features;
+}
+
+
+// std::vector<std::vector<double>> slidingExtraction841 (cv::Mat &src, featureMethod){
+//     std::cout << "\n\nFUNCTION CALL WORKS SLIDING EXTRACTION\n\n";
+//     std::vector<std::vector<double>> features;
+    
+//     cv::Rect roi(100, 100, 200, 200);
+//     src(roi).copyTo(temp);
+
+    
+//     return features;
+// }

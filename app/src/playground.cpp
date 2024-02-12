@@ -31,30 +31,33 @@ int main(int argc, char *argv[]) {
 
     std::string featurePath{"../data/features.csv"};
     
+    // std::string dataDir{"../data/olympus/olympus/"};
     std::string dataDir{"../data/olympus/olympus/"};
-    std::string targetPath{"../data/olympus/olympus/pic.0598.jpg"};
+    std::string targetPath{"../data/olympus/objects/pic.0373.jpg"};
 
 
-    // //____________ENTER FEATURE TYPE_____________________________________________
-    std::string featureType{"Resnet"};
+    // // //____________ENTER FEATURE TYPE_____________________________________________
+    std::string featureType{"globalHogandColour"};
+    bool useStridedFeatures = false;
+
     //___________________________________________________________________________
 
-    std::cout << "\n going to initialize feature extractor \n";
+    // std::cout << "\n going to initialize feature extractor \n";
 
-    FeatureExtractor featureExtractor{FeatureExtractor(dataDir,  featurePath, featureType)};
+    // FeatureExtractor featureExtractor{FeatureExtractor(dataDir,  featurePath, featureType, useStridedFeatures)};
 
-    std::cout << "\n initialized feature extractor, going to compute the features \n";
-    featureExtractor.computeFeatures();
+    // std::cout << "\n initialized feature extractor, going to compute the features \n";
+    // featureExtractor.computeFeatures();
 
-    std::cout << "\n FINISHED COMPUTING THE FEATURES \n";
+    // std::cout << "\n FINISHED COMPUTING THE FEATURES \n";
 
 
     //___________ENTER DISTANCE TYPE and NUM IMAGES TO DISTPLAY__________________
-    std::string distanceType{"EuclideanDistance"};
-    int numImages = 5;
+    std::string distanceType{"stridedEuclideanDistance"};
+    int numImages = 8;
     //___________________________________________________________________________
 
-    DistanceFinder dfObject{DistanceFinder(featurePath,  targetPath, distanceType)};
+    DistanceFinder dfObject{DistanceFinder(featurePath,  targetPath, distanceType, featureType)};
     
     std::cout << "\n going to compute distances \n";
 
@@ -220,8 +223,9 @@ int main(int argc, char *argv[]) {
     // DIR *dirp;
     // struct dirent *dp;
     // int i;
-    
+    // dataDir = "../data/olympus/objects/";
     // dirp = opendir(dataDir.c_str());;
+    // cv::Mat targetMat;
 
     // std::vector<std::string> imPaths;
 
@@ -244,84 +248,62 @@ int main(int argc, char *argv[]) {
     // std::iota(indices.begin(), indices.end(), 0);
     // std::random_shuffle( indices.begin(), indices.end() );
     
-    // for(size_t i = 0 ; i < 5 ; i++){
+    // targetPath =  "../data/olympus/objects/pen.jpg";
+
+    // for(size_t i = 0 ; i < indices.size() ; i++){
 
     //     /* `targetPath = imPaths[indices[i]]` is assigning the `i`th image path from the `imPaths`
     //     vector to the `targetPath` variable. The `indices` vector is used to shuffle the indices of
     //     the `imPaths` vector, so each time the loop runs, a different image path is assigned to
     //     `targetPath`. This allows for random selection of images from the `imPaths` vector. */
-    //     // targetPath = imPaths[indices[i]];
-    //     targetPath =  "../data/olympus/olympus/pic.0063.jpg";
+    //     std::string featureImPath = imPaths[indices[i]];
+    //     // targetPath =  "../data/olympus/olympus/pic.0598.jpg";
 
-    //     std::cout<< "impath : " <<targetPath << "\n";
+    //     std::cout<< "impath : " <<featureImPath << "\n";
 
-    //     cv::Mat testmat = cv::imread(targetPath, cv::IMREAD_COLOR); 
+    //     cv::Mat src;
+    //     src = cv::imread(featureImPath, cv::IMREAD_COLOR); 
 
     //     hog hogComputer(5, 160, -160, 8, 5);
 
-    //     cv::Mat hist = hogComputer.computeGlobalHogV1(testmat);
+    //     getEdgeImage(src, src);
 
-    //     hist = hist.reshape(1, 1);
+    //     std::string saveName = featureImPath.substr(0,16) + "processed/";    
+    //     saveName += featureImPath.substr(24, (featureImPath.length() - 23 -  4)) + "edge.jpg";  
 
-    //     std::cout << "\n\n\n" << hist.size() << "\n\n";
+    //     cv::imwrite(saveName, src);
 
-    //     break;
+    //     std::cout << "\nsave name :" << saveName << "\n ";
+    
+
+
+    //     //############
+    //     printmat(src, 3);
+    //     cv::namedWindow("target image");
+    //     cv::imshow("target image", src);
+    //     cv::waitKey(0);
+
+        // cv::Mat temp;
+
+        // featureMethod featureSlide;
+        // featureSlide = &histFeature;
+        // std::vector<std::vector<double>> features;
+
+        // int kernelSize = src.size().width / 3;
+
+        // features =  slidingExtraction(src, featureSlide, kernelSize);
+
+        // targetMat = cv::imread(targetPath, cv::IMREAD_COLOR);
+        // std::vector<std::vector<double>> targetFeatures;
+        // targetFeatures = featureSlide(targetMat);
+
+        // rawDistanceMethod distancegetter = &rawEuclideanDistance;
+        // double distance = stridedDistanceComputer(targetFeatures, features, distancegetter, false);
         
-        // cv::Mat magMat;
-        // cv::Mat orMat;
-        // cv::Mat outmat;
-        // cv::Mat temp1, temp2, temp3, temp;
-
-        // cv::Mat outmatx;
-        // cv::Mat outmaty;
-
-        // std::cout << "\n testmat depth = " << testmat.depth() << "\n";
-        
-        // cv::namedWindow("target image");
-        // cv::imshow("target image", testmat);
-        // cv::waitKey(0);
-
-        // cv::medianBlur(testmat, testmat, 5);
-
-        // testmat.convertTo(testmat, CV_64F);
-
-        // float sobelf[5] = {1,2,0,-2,-1};
-        // float gaussianf[5] = {1,2,4,2,1};
-
-        // cv::Mat sobel(1, 5, CV_64F, sobelf);
-        // cv::Mat gaussian(1, 5, CV_64F, gaussianf);
-
-        // cv::sepFilter2D(testmat, outmatx, testmat.depth(), sobel, gaussian);
-        // cv::sepFilter2D(testmat, outmaty, testmat.depth(), gaussian, sobel);
-        
-
-        // outmaty = myThresh(outmaty, 160, -160);
-        // outmaty.convertTo(outmaty, CV_64F);
-
-        // outmatx =  myThresh(outmatx, 160, -160);
-        // outmatx.convertTo(outmatx, CV_64F);
-
-        // cv::pow(outmatx, 2, temp1);
-        // cv::pow(outmaty, 2, temp2);
-        // cv::sqrt(temp1 + temp2, temp);
-        // magMat = temp;
-        // magMat += cv::Scalar(1, 1, 1);
-
-        // printmat(magMat, 4);
-        // displayImage(magMat);
-
-        // temp3 = (outmatx + outmaty) / (magMat);
-        // orMat = temp3;
-        // std::pair<double, double> parsold = myNormMat(orMat, orMat);
-        // std::pair<double, double> parsNew(0, 255);
-        // myNormMatInv(orMat, orMat, parsNew);
-
-        // printmat(orMat, 4);
-        // displayImage(orMat);
-
-    //    ________________making grad orient hist__________________
-
+        // std::cout << "\ndistance found = " << distance  << "\n";    
+        // displayImage(temp);
     // }
-
+    //    ________________making grad orient hist__________________
     return 0;
+    // }
 }

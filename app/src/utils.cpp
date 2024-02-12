@@ -21,6 +21,7 @@ This progrogam stores the different feature extraction functions
 #include <vector>
 
 #include <utils.h>
+#include <hog.h>
 
 std::string myMatType(cv::Mat &src) {
     int type = src.type();
@@ -75,78 +76,28 @@ std::pair<double, double> myNormMat(cv::Mat &src, cv::Mat &dst){
     return pars;
 }
 
+std::pair<double, double> myNormVec(std::vector<double> &src, std::vector<double> &dst){
+    double minVal;
+    double maxVal;
+
+    cv::Mat matSrc(src);
+    cv::minMaxLoc(matSrc, &minVal, &maxVal);
+
+    if(maxVal != minVal){
+        matSrc = (matSrc - minVal) / (maxVal - minVal);
+    }   
+
+    dst = matSrc;
+    std::pair<double, double> pars(minVal, maxVal);
+    return pars;
+}
+
 void myNormMatInv(cv::Mat &src, cv::Mat &dst, std::pair<double, double> pars){
     double minVal = pars.first;
     double maxVal = pars.second;
     dst = src.clone();
     dst = (dst * (maxVal - minVal)) + minVal;
 }
-
-// int kmeans( std::vector<cv::Vec3b> &data,
-//     std::vector<cv::Vec3b> &means,
-//     int *labels,
-//     int K,
-//     int maxIterations,
-//     int stopThresh ) {
-//     // error checking
-//     if( K > data.size() ) {
-//         printf("error: K must be less than the number of data points\n");
-//         return(-1);
-//     }
-//     // clear the means vector
-//     means.clear();
-//     // initialize the K mean values
-//     // use comb sampling to select K values
-//     int delta = data.size() / K;
-//     int istep = rand() % (data.size() % K);
-//     for(int i=0;i<K;i++) {
-//         int index = (istep + i*delta) % data.size();
-//         means.push_back( data[index] );
-//     }
-//     // have K initial means
-//     // loop the E-M steps
-//     for(int i=0;i<maxIterations;i++) {
-//         // classify each data point using SSD
-//         for(int j=0;j<data.size();j++) {
-//         int minssd = SSD( means[0], data[j] );
-//         int minidx = 0;
-//         for(int k=1;k<K;k++) {
-//             int tssd = SSD( means[k], data[j] );
-//             if( tssd < minssd ) {
-//                 minssd = tssd;
-//                 minidx = k;
-//             }
-//         }
-//         labels[j] = minidx;
-//         }
-//         // calculate the new means
-//         std::vector<cv::Vec4i> tmeans(means.size(), cv::Vec4i(0, 0, 0, 0) ); //
-//         initialize with zeros
-//         for(int j=0;j<data.size();j++) {
-//             tmeans[ labels[j] ][0] += data[j][0];
-//             tmeans[ labels[j] ][1] += data[j][1];
-//             tmeans[ labels[j] ][2] += data[j][2];
-//             tmeans[ labels[j] ][3] ++; // counter
-//         }
-//         int sum = 0;
-//         for(int k=0;k<tmeans.size();k++) {
-//             tmeans[k][0] /= tmeans[k][3];
-//             tmeans[k][1] /= tmeans[k][3];
-//             tmeans[k][2] /= tmeans[k][3];
-//             // compute the SSD between the new and old means
-//             sum += SSD( tmeans[k], means[k] );
-//             means[k][0] = tmeans[k][0]; // update the mean
-//             means[k][1] = tmeans[k][1]; // update the mean
-//             means[k][2] = tmeans[k][2]; // update the mean
-//         }
-//         // check if we can stop early
-//         if( sum <= stopThresh ) {
-//             break;
-//         }
-//     }
-//     // the labels and updated means are the final values
-//     return(0);
-// }
 
 cv::Mat makeHist(cv::Mat &src, int numBins){
     cv::Mat hist;
@@ -221,96 +172,90 @@ cv::Mat myThresh(cv::Mat &img, int postThresh, int negThresh){
     return out;
 }
 
+void emphEdges(cv::Mat &src, cv::Mat &dst){
+    cv::Mat gradX;
+    cv::Mat gradY;
+    cv::Mat magMat;
+    cv::Mat orMat;
+    cv::Mat channels[3];
+    cv::Mat test;
 
+    hog hogComputer(5, 160, -160, 8, 5);
+    gradX = hogComputer.computeGrad(src, true);
+    gradY = hogComputer.computeGrad(src, false);
+    magMat = hogComputer.computeMagnitude(gradX, gradY);
+    orMat = hogComputer.computeOrientation(gradX, gradY);
+    test = (magMat >= 20);
+    test.convertTo(test, CV_64F);
 
-// int texture(cv::Mat &src, cv::Mat &dst, float filterData1dRow[], float filterData1dCol[], bool isX)
-// {
-//     cv::Mat procFrame = src.clone();
-//     cv::Mat filterRow;
-//     cv::Mat filterCol;
+    cv::Mat element = cv::getStructuringElement(cv::MORPH_CROSS,
+                cv::Size(2, 2),
+                cv::Point(1, 1));
+
+    cv::erode( test, test, element);
+    cv::dilate( test, test, element );
+
+    cv::split(test, channels);
     
-//     if(isX){
-//         filterRow = cv::Mat(1, 5, CV_64F, filterData1dRow);
-//         filterCol = cv::Mat(5, 1, CV_64F, filterData1dCol);
-//     } else {
-//         filterRow = cv::Mat(1, 5, CV_64F, filterData1dCol);
-//         filterCol = cv::Mat(5, 1, CV_64F, filterData1dRow);
-//     }
+    test = cv::max(channels[0], channels[1]);
+    test = cv::max(channels[2], test);  
 
-//     cv::Size dimsFrame = procFrame.size();
-//     int numColsFrame = dimsFrame.width;
-//     int numRowsFrame = dimsFrame.height;
-//     cv::Size dimsFilter = filterRow.size();
-//     int numColsFilter = dimsFilter.width;
-//     int numRowsFilter = dimsFilter.height;
-//     int r, c, ch; 
-//     cv::Mat ogChannels[3], procChannels[3];
-//     procFrame.convertTo(procFrame, CV_64F);
-//     cv::split(procFrame, procChannels);
-//     cv::split(procFrame, ogChannels);
-//     int numiters = 0;
-//     int offset = numColsFilter / 2;
-//     int normer = 1;
-//     for(ch = 0; ch < 3; ch++)
-//     {
-//         for(c = 0; c < (numColsFrame - numColsFilter + 1); c++)
-//         {
-//             cv::Mat colSlice = ogChannels[ch].colRange(c, c+numColsFilter); 
-//             cv::Mat interim = filterRow * colSlice.t();
-//             interim = interim.t();
-//             interim = interim / normer;
-//             interim.copyTo(procChannels[ch].col(offset + c));
-//         }
-//     }
-//     for(ch = 0 ; ch < 3 ; ch++)
-//     {
-//         procChannels[ch].copyTo(ogChannels[ch]);
-//     }
-//     normer = 1; 
-//     for(ch = 0; ch < 3; ch++)
-//     {
-//         for(r = 0; r < (numRowsFrame - numColsFilter + 1); r++)
-//         {
-//             cv::Mat rowSlice(ogChannels[ch].rowRange(r, r+numColsFilter)); 
-//             cv::Mat interim(filterCol.t() * rowSlice);
-//             interim = interim / normer;
-//             interim.copyTo(procChannels[ch].row(r));
-//         }
-//     }
-//     cv::Mat outChannels[3];
-//     cv::split(procFrame, outChannels);
-//     for(ch = 0 ; ch < 3 ; ch++)
-//     {
-//         cv::Rect toroi(offset, offset, numColsFrame - numColsFilter + 1, numRowsFrame - numColsFilter + 1);
-//         cv::Rect fromroi(0, 0, numColsFrame - numColsFilter + 1, numRowsFrame - numColsFilter + 1);
-//         procChannels[ch](fromroi).copyTo(outChannels[ch](toroi));
-//     }
-//     cv::merge(outChannels, 3, dst);
+    test = test/255;
+    test = 1 - test;
+    
+    channels[0] = test;
+    channels[1] = test;
+    channels[2] = test;
+    
+    cv::merge(channels, 3, test);
+    
+    test.convertTo(test, CV_64F);
+    
+    src.convertTo(src, CV_64F);
+    
+    cv::multiply(test, src, test);
 
-//     return 1;
-// }
+    dst = test;
+}   
 
-// int magnitude(Mat &sx, Mat &sy, Mat &dst)
-// {
-//     // dst.convertTo(dst, CV_16SC3);
-//     sx.convertTo(sx, CV_64FC3);
-//     sy.convertTo(sy, CV_64FC3);
-//     dst.convertTo(dst, CV_64FC3);
 
-//     cv::Mat outChannels[3], xChannels[3], yChannels[3];
+void getEdgeImage(cv::Mat &src, cv::Mat &dst){
 
-//     cv::split(dst, outChannels);
-//     cv::split(sx, xChannels);
-//     cv::split(sy, yChannels);
+    cv::Mat gradX;
+    cv::Mat gradY;
+    cv::Mat magMat;
+    cv::Mat orMat;
+    cv::Mat channels[3];
+    cv::Mat test;
 
-//     int ch;
-//     for(ch = 0 ; ch < 3 ; ch++ )
-//     {
-//         outChannels[ch] = (yChannels[ch].mul(yChannels[ch])) + (xChannels[ch].mul(xChannels[ch])) ;
-//         sqrt(outChannels[ch], outChannels[ch]);
-//     }
+    hog hogComputer(5, 160, -160, 8, 5);
+    gradX = hogComputer.computeGrad(src, true);
+    gradY = hogComputer.computeGrad(src, false);
+    magMat = hogComputer.computeMagnitude(gradX, gradY);
+    orMat = hogComputer.computeOrientation(gradX, gradY);
+    test = (magMat >= 20);
+    test.convertTo(test, CV_64F);
 
-//     cv::merge(outChannels, 3, dst);
+    cv::Mat element = cv::getStructuringElement(cv::MORPH_CROSS,
+                cv::Size(2, 2),
+                cv::Point(1, 1));
 
-//     return 1;
-// }
+    cv::erode( test, test, element);
+    cv::dilate( test, test, element, cv::Point(-1,-1), 2);
+    cv::erode( test, test, element);
+    cv::dilate( test, test, element, cv::Point(-1,-1), 2);
+    cv::erode( test, test, element, cv::Point(-1,-1), 2);
+
+
+    cv::split(test, channels);
+    
+    test = cv::max(channels[0], channels[1]);
+    test = cv::max(channels[2], test);  
+    
+    channels[0] = test;
+    channels[1] = test;
+    channels[2] = test;
+    
+    cv::merge(channels, 3, test);
+    dst = test;
+}   

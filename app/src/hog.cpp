@@ -43,8 +43,10 @@ hog::hog(int blurrKernelSize,
 cv::Mat hog::computeGrad(cv::Mat &src, bool isX){
     cv::Mat dst;
     dst = src.clone();
+    
     cv::Mat grad;
 
+    dst.convertTo(dst, CV_8U);
     cv::medianBlur(dst, dst, 5);
 
     dst.convertTo(dst, CV_64F);
@@ -417,12 +419,12 @@ cv::Mat hog::computeGlobalHog(cv::Mat &src){
             }
 
             // ----------- SPLITTING MAGNITUDE ---------------
-            double lowComponentR = lowRatioR * rMag;          
-            double highComponentR = (1 - lowRatioR) * rMag;
+            // double lowComponentR = lowRatioR * rMag;          
+            // double highComponentR = (1 - lowRatioR) * rMag;
 
             //------------NO SPLITTING MAGNITUDE -------------
-            // double lowComponentR = rMag;          
-            // double highComponentR = 0;           
+            double lowComponentR = rMag;          
+            double highComponentR = 0;           
 
             const int constGlobalOrientationBins{globalOrientationBins}; 
 
@@ -456,12 +458,12 @@ cv::Mat hog::computeGlobalHog(cv::Mat &src){
             }
 
             // --------------SPLITTING MAGNITUDE -------------
-            double lowComponentG = lowRatioG * gMag;          
-            double highComponentG = (1 - lowRatioG) * gMag;
+            // double lowComponentG = lowRatioG * gMag;          
+            // double highComponentG = (1 - lowRatioG) * gMag;
 
             //---------------NO SPLITTING MAGNITUDE -----------
-            // double lowComponentG = gMag;          
-            // double highComponentG = 0;
+            double lowComponentG = gMag;          
+            double highComponentG = 0;
 
             // hist.at<cv::Vec<double, constGlobalOrientationBins>>(rBin, gBin)[orBinLowG] = lowComponentG;
             // hist.at<cv::Vec<double, constGlobalOrientationBins>>(rBin, gBin)[orBinHighG] = highComponentG;

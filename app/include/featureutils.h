@@ -51,12 +51,13 @@ class FeatureExtractor{
         std::string csvOutPath;
         std::string featureName;
         featureMethod featureComputer;
+        bool useStridedFeatures;
         
         bool checkPaths();
 
     public:
         // Constructor
-        FeatureExtractor(std::string inDir, std::string outPath, std::string featureMethodKey);
+        FeatureExtractor(std::string inDir, std::string outPath, std::string featureMethodKey, bool useStridedFeatures);
         // Destructor
         // ~FeatureExtractor();
 
@@ -70,6 +71,8 @@ std::vector<std::vector<double>> baselineFeatures7x7(cv::Mat &src);
 std::vector<std::vector<double>> histFeature(cv::Mat &src);
 std::vector<std::vector<double>> upperLowerCropsHist(cv::Mat &src);
 std::vector<std::vector<double>> globalHog(cv::Mat &src);
+std::vector<std::vector<double>> globalHogandColour(cv::Mat &src);
+std::vector<std::vector<double>> slidingExtraction (cv::Mat &src, featureMethod featureSlide, int kernelSize);
 void readDnnFeatures();
 
 #endif // FEATUREUTILS_H
