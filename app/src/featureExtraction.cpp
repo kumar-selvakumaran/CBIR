@@ -1,7 +1,9 @@
-/*
-This is the feature extraction prograram which takes as in put the  feature 
-extraction method and then creates a database of features,
-each feature corresponding to a single image. 
+/**
+ * Names : Kumar Selvakumaran, Neel Adke,
+ * date : 2/13/2024
+ * Purpose : This is the feature extraction prograram which takes as in put the  feature 
+ * extraction method and then creates a database of features,
+ * each feature corresponding to a single image. 
 */
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>

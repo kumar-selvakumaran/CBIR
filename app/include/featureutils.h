@@ -1,5 +1,8 @@
-// Purpose : Contains the declearations of all the functions used.
-
+/**
+ * Names : Kumar Selvakumaran, Neel Adke,
+ * date : 2/13/2024
+ * purpose : This file is the header for featurutils.cpp which contains the utility classes and functions for feature extraction
+*/
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -13,36 +16,8 @@
 
 typedef std::vector<std::vector<double>> (*featureMethod)(cv::Mat &src); 
 
-
 /*
-Given a directory on the command line, scans through the directory for image
-files.
-Prints out the full path name for each file. This can be used as an argument to
-fopen or to cv::imread.
-*/
-
-
-/*
-The class takes is constructed with the extraction method and the directory of the 
-image database, and the savepath of the csv file.
-It will compute features of the images in the database and store the feature vectors
-in a csv file at the location specifiesd
-
-- members variables:
-    - imdbDir : path the directory of the image database.
-    - csvOutPath : Path the the csv output file.
-
-- member functions:
-        - private dirOpened(std::string dirPath ) -> boolean 
-        returns if dir path opened successfully or not
-
-    - private saveCsv(const std::vector<std::vector<float>> encodings) -> boolean
-        Takes the feature array as input and saves it as a csv. Returns True, if saved
-        successfully.
-    - public computeFeatures() -> boolean
-        calls dirOpened(), and if successful,  iterates over the image database and 
-        finds the feature embeddings of the different images. then calls saveCsv with the 
-        feature embeddings.
+This class is contains all the required feature extraction methods, and auxillary data
 */
 class FeatureExtractor{
     private:
@@ -56,23 +31,26 @@ class FeatureExtractor{
         bool checkPaths();
 
     public:
-        // Constructor
+        
         FeatureExtractor(std::string inDir, std::string outPath, std::string featureMethodKey, bool useStridedFeatures);
-        // Destructor
-        // ~FeatureExtractor();
-
-        // Member function declarations
+    
         bool computeFeatures();
 };
 
 featureMethod getFeatureMethod(std::string featureMethodKey);
 
 std::vector<std::vector<double>> baselineFeatures7x7(cv::Mat &src);
+
 std::vector<std::vector<double>> histFeature(cv::Mat &src);
+
 std::vector<std::vector<double>> upperLowerCropsHist(cv::Mat &src);
+
 std::vector<std::vector<double>> globalHog(cv::Mat &src);
+
 std::vector<std::vector<double>> globalHogandColour(cv::Mat &src);
-std::vector<std::vector<double>> slidingExtraction (cv::Mat &src, featureMethod featureSlide, int kernelSize);
+
 void readDnnFeatures();
+
+std::vector<std::vector<double>> slidingExtraction (cv::Mat &src, featureMethod featureSlide, int kernelSize);
 
 #endif // FEATUREUTILS_H

@@ -1,5 +1,7 @@
-/*
-This progrogam stores the different feature extraction functions
+/**
+ * Names : Kumar Selvakumaran, Neel Adke,
+ * date : 2/13/2024
+ * Purpose : This is file contains or imports all the required classes and fuction required for distance computation. 
 */
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -27,7 +29,15 @@ This progrogam stores the different feature extraction functions
 #include <utils.h>
 #include <featureutils.h>
 
-
+/**
+ * The function "pathOpened" checks if a file exists at the specified directory path.
+ * 
+ * @param dirpath The parameter 'dirpath' is a string representing the directory path
+ * where the existence of a file needs to be checked.
+ * 
+ * @return A boolean value indicating whether a file exists at the specified directory path.
+ * Returns 'true' if the file exists and can be opened successfully, otherwise returns 'false'.
+ */
 bool DistanceFinder::pathOpened(std::string dirpath){
     std::ifstream file(dirpath.c_str());
     if (!(file.is_open())) {
@@ -37,6 +47,33 @@ bool DistanceFinder::pathOpened(std::string dirpath){
     return true;
 }
 
+/**
+ * The constructor "DistanceFinder" initializes an object of the DistanceFinder class.
+ * It takes several parameters to set up the object, including a path to the feature csv file,
+ * keys to specify distance calculation method, and a key to specify the  target feature 
+ * extraction method used to generate features for the target image.
+ * 
+ * @param featurePath A string representing the path to the feature csv file.
+ * 
+ * @param targetPath A string representing the path to the target image path.
+ * 
+ * @param distanceMethodKey A string representing the key or name of the distance calculation method.
+ * 
+ * @param targetFeaturekey A string representing the key or name of the target feature extraction method.
+ * 
+ * Upon construction, the constructor checks if the feature file can be opened successfully
+ * using the "pathOpened" function. If it cannot be opened, an error message is printed, and the constructor returns.
+ * 
+ * After validating the feature file, the constructor initializes member variables of the DistanceFinder object:
+ * - 'featurePath': Path to the feature file.
+ * - 'targetPath': Path to the target file.
+ * - 'distanceName': Name of the distance calculation method.
+ * - 'distanceComputer': Pointer to the distance calculation function obtained using the 'distanceMethodKey' key.
+ * - 'targetFeatureName': Name of the target feature extraction method.
+ * - 'targetFeatureComputer': Pointer to the target feature extraction function obtained the 'targetFeatureName' key.
+ * 
+ * Finally, the constructor calls the "loadFeatures" function to load features from the feature csv file.
+ */
 DistanceFinder::DistanceFinder(
     std::string featurePath,
     std::string targetPath,
@@ -59,12 +96,23 @@ DistanceFinder::DistanceFinder(
         loadFeatures();
 }
 
-/*
-read the feature vectors csv file, from this->featurePath, and
-compute distances to the vector corresponding to this->targetPath
-save distances in a disances.csv 
-*/
-
+/**
+ * The function "loadFeatures" is a member function of the DistanceFinder class, which loads features from a CSV file.
+ * 
+ * This function reads the feature CSV file specified by the member variable 'featurePath'.
+ * It parses each line of the CSV file to extract image paths and corresponding feature vectors.
+ * 
+ * Features are expected to be formatted such that every odd-numbered line contains an image path,
+ * and the subsequent even-numbered line contains comma-separated feature values.
+ * 
+ * @return A boolean value indicating the success of loading features.
+ * Returns 'true' if the features are loaded successfully, otherwise returns 'false'.
+ * 
+ * Upon successful loading of features, the function populates the member variable 'featureMap'.
+ * 'featureMap' is a map with image paths as keys and corresponding feature vectors as values.
+ * 
+ * Note: If the feature CSV file does not follow the expected format, the function may not load features correctly.
+ */
 bool DistanceFinder::loadFeatures(){   
     std::ifstream featurecsv(featurePath);
     std::string line;
@@ -103,7 +151,14 @@ bool DistanceFinder::loadFeatures(){
     return true;
 }
 
-
+/**
+ * The function "computeDistances" calculates distances between a target image and the set of feature vectors
+ * stored in the feature map. It populates the member variable 'distances'with computed distances and sorts them in ascending or
+ * descending order based on the specified distance calculation method.
+ * 
+ * @return A boolean value indicating the success of the computation. Returns 'true' if computation
+ * is successful, otherwise returns 'false'.
+ */
 bool DistanceFinder::computeDistances(){
     std::vector<double> distances(featureMap.size());
     std::cout << "\n initialized a distances array of size " << featureMap.size() << "\n";
@@ -112,15 +167,8 @@ bool DistanceFinder::computeDistances(){
     
     std::map<std::string, std::vector<std::vector<double>>>::iterator it = featureMap.begin();
 
-    // cv::Mat targetMat(featureMap[targetPath]);
-
-    // //#################
-    // std::cout << "target path : \t " << targetPath <<"\n";
-    // printmat(targetMat, 5);
-    // //#################
-    
     //------- READING FROM FEATURES.CSV ------
-    // std::vector<std::vector<double>> targetVec(featureMap[targetPath]);
+    // std::vector<std::vector<double>> targetVec = featureMap[targetPath] ;
     //----------------------------------------
 
     //------- RECOMPUTING IN RUNTIME ----------
@@ -137,15 +185,11 @@ bool DistanceFinder::computeDistances(){
         double distance;
         std::string imPath = it->first;
         std::vector<std::vector<double>> featureVec = it->second;
-        // std::cout << "\nloaded featurevec, computing distances\n";
-        // printmat(featureMat, 4);
-        // std::cout <<"\nerror not in printmat\n";
         if(distanceName != "stridedEuclideanDistance"){
             distance = distanceComputer(targetVec, featureVec);
         }
         //######------SLIDING DISANCE COMPUTER------###########
         else {
-            std::cout << "\n###################\n using hardcoded distance metric\n#########################";
             rawDistanceMethod distancegetter = &rawEuclideanDistance;
             distance = stridedDistanceComputer(targetVec, featureVec, distancegetter, maximize);
         }
@@ -157,7 +201,7 @@ bool DistanceFinder::computeDistances(){
         pos++;
         it++;
     }
-    
+
     std::vector<size_t> sortedDistInds = sortIndices(distances, maximize);
 
     for(size_t i = 0 ; i < sortedDistInds.size() ; i++){
@@ -169,7 +213,28 @@ bool DistanceFinder::computeDistances(){
     return true;
 }
 
-
+/**
+ * The function "getSimilarImages" displays or saves similar images to the target image based on the provided mode.
+ * 
+ * @param numImages An integer representing the number of similar images to display or save.
+ * 
+ * @param mode A string indicating the mode of operation. It can be either "show" to display similar images or "save"
+ * to save them.
+ * 
+ * The function reads the target image from the specified path using OpenCV's "imread" function and displays it in a
+ * named window titled "target image". It then iterates over the sorted list of image paths and corresponding distances
+ * and displays or saves the specified number of similar images based on the provided mode.
+ * 
+ * If the mode is "show", similar images are displayed one by one in a named window titled "similar images" using OpenCV's
+ * "imshow" function, and the user can navigate through them using keyboard inputs until the user closes the window.
+ * 
+ * If the mode is "save", similar images are saved to the "./images/" directory with filenames corresponding to their
+ * index in the sorted list appended with ".jpg" extension using OpenCV's "imwrite" function.
+ * 
+ * After displaying or saving the specified number of similar images, if the number of images to display is zero,
+ * the function closes the named windows "similar images" and "target image" using OpenCV's "destroyWindow" function
+ * and returns 'true' to indicate successful execution.
+ */
 bool DistanceFinder::getSimilarImages(int numImages, std::string mode){
     cv::Mat viztarget = cv::imread(targetPath, cv::IMREAD_COLOR);
     cv::Mat vizimg;
@@ -188,6 +253,49 @@ bool DistanceFinder::getSimilarImages(int numImages, std::string mode){
             std::cout << "\n SIMILAR IMAGE : " << i << " path : " << imPath << "\n";
             cv::imshow("similar images", vizimg);
             cv::waitKey(0);
+        }    
+        else if (mode == "save") {
+            vizimg = cv::imread(imPath, cv::IMREAD_COLOR);
+            std::cout << "\n SIMILAR IMAGE : " << i << " path : " << imPath << "\n";
+            std::string savename = "./images/" + std::to_string(i) + ".jpg";
+            cv::imwrite(savename, vizimg);
+        }
+        
+        if ( numImages==0 ){
+            cv::destroyWindow("similar images");
+            cv::destroyWindow("target image");
+            break;
+        }
+
+        numImages--;
+    }
+
+    return true;
+}
+
+bool DistanceFinder::getDisSimilarImages(int numImages, std::string mode){
+    cv::Mat viztarget = cv::imread(targetPath, cv::IMREAD_COLOR);
+    cv::Mat vizimg;
+    cv::namedWindow("target image");
+    cv::namedWindow("similar images");
+
+    cv::imshow("target image", viztarget);
+    cv::waitKey(0);
+
+    for(size_t i = imPathsDistSorted.size() - 1  ; i > 0 ; i--){
+        std::string imPath = imPathsDistSorted[i]; 
+        double distance = distancesSorted[i];
+        std::cout << "\n distance : " << distance << "\n";
+        if (mode == "show"){
+            vizimg = cv::imread(imPath, cv::IMREAD_COLOR);
+            std::cout << "\n SIMILAR IMAGE : " << i << " path : " << imPath << "\n";
+            cv::imshow("similar images", vizimg);
+            cv::waitKey(0);
+
+            //################################3
+            std::string savename = "./images/" + std::to_string(i) + ".jpg";
+            cv::imwrite(savename, vizimg);
+            //#################################
         }    
         else if (mode == "save") {
             std::cout << "\n mode = 'save' in getSimilarImages is NOT IMPLEMENTED\n";

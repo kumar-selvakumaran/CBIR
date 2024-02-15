@@ -1,4 +1,8 @@
-// Purpose : Contains the declearations of all the functions used.
+/**
+ * Names : Kumar Selvakumaran, Neel Adke,
+ * date : 2/13/2024
+ * Purpose : This is header used for utils.cpp which contains functions for miscellaneous purposes. 
+*/
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -16,7 +20,11 @@
 
 // #include<utils.h>
 
-
+/**
+ * The function "myPrintVec" prints the elements of a vector to the standard output.
+ * 
+ * @param vec A reference to a std::vector object containing elements of type T.
+ */
 template<typename T>
 void myPrintVec(std::vector<T> &vec) {
     std::cout << "\t[";
@@ -29,6 +37,20 @@ void myPrintVec(std::vector<T> &vec) {
     std::cout << "]\t" << std::endl;
 }
 
+/**
+ * The template function "sortIndices" sorts the indices of a vector based on the corresponding
+ * values in the vector in ascending order by default or descending order if specified.
+ * 
+ * @tparam T The template parameter `T` represents the data type of the elements in the vector.
+ * 
+ * @param array A reference to the vector whose indices are to be sorted.
+ * 
+ * @param descending A boolean value indicating the sorting order. 
+ * If `false` (default), sorting is done in ascending order. 
+ * If `true`, sorting is done in descending order.
+ * 
+ * @return A vector of size_t representing the sorted indices of the input vector.
+ */
 template <typename T>
 std::vector<size_t> sortIndices(std::vector<T> &array, bool descending = false) {
     std::vector<size_t> indices(array.size());
@@ -45,14 +67,16 @@ std::vector<size_t> sortIndices(std::vector<T> &array, bool descending = false) 
 
 
 std::string myMatType(cv::Mat &src);
+
 void printmat(cv::Mat &src, int vizdim);
+
 int earliestDecPos(double num);
 
 cv::Mat makeHist(cv::Mat &src, int numBins);
 
-// int magnitude(Mat &sx, Mat &sy, Mat &dst)
+void vizHist(cv::Mat hist, int numBins);
 
-void displayImage(cv::Mat &img);
+void displayImage(cv::Mat &img, bool normalize, bool onlyPositive);
 
 cv::Mat myThresh(cv::Mat &img, int postThresh, int negThresh);
 
@@ -62,11 +86,13 @@ void myNormMatInv(cv::Mat &src, cv::Mat &dst, std::pair<double, double> pars);
 
 std::pair<double, double> myNormVec(std::vector<double> &src, std::vector<double> &dst);
 
-void emphEdges(cv::Mat &src, cv::Mat &dst);
+void drawEdges(cv::Mat &src, cv::Mat &dst);
 
 void getEdgeImage(cv::Mat &src, cv::Mat &dst);
 
-// void slide(cv::Mat &src, cv::Mat &filter, cv::);
+cv::Mat myThreshWeighted(cv::Mat &img, int postThresh, int negThresh, double weightPercent);
+
+cv::Mat getNoiseImage(int width, int height, int minVal, int maxVal);
 
 #endif // UTILS_H
 

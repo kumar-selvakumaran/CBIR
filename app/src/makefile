@@ -19,7 +19,7 @@ FEATURES = features.csv
 
 # Compile and Link
 # TASK = featureExtraction
-# FEATURETYPE = Baseline
+FEATURETYPE = Baseline
 
 # Distance computaation requisites
 TASK = distanceFinding
@@ -27,11 +27,13 @@ TARGET = pic.0571.jpg
 DISTANCETYPE = EuclideanDistance
 NUMIMAGES = 5
 
-# $(PROJECT): $(TASK).cpp
-# 	$(CC) -o $(DEST)$(TASK).exe $(TASK).cpp $(LIBS) 
-# 	$(DEST)$(TASK).exe $(DATA)$(TASK).mp4 $(TASK)
 
-#	FEATURE EXTRACTOR
+#	FEATURE EXTRACTOR (without striding)
+# app: featureExtraction.cpp featureutils.cpp utils.cpp
+# 	$(CC) $^ -o $(BINDIR)/$(TASK) $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
+# 	$(BINDIR)/$(TASK) $(DATA)$(IMDIR)/ $(FEATURETYPE) $(DATA)$(FEATURES)
+
+#	FEATURE EXTRACTOR (with striding)
 # app: featureExtraction.cpp featureutils.cpp utils.cpp
 # 	$(CC) $^ -o $(BINDIR)/$(TASK) $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
 # 	$(BINDIR)/$(TASK) $(DATA)$(IMDIR)/ $(FEATURETYPE) $(DATA)$(FEATURES)
@@ -39,22 +41,14 @@ NUMIMAGES = 5
 #	DISTANCE FINDER
 # app: distanceFinding.cpp distanceutils.cpp utils.cpp
 # 	$(CC) $^ -o $(BINDIR)/$(TASK) $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
-# 	$(BINDIR)/$(TASK) $(DATA)$(FEATURES) $(DISTANCETYPE) $(DATA)$(IMDIR)/$(TARGET) $(NUMIMAGES)
+# 	$(BINDIR)/$(TASK) $(DATA)$(FEATURES) $(DISTANCETYPE) $(FEATURETYPE) $(DATA)$(IMDIR)/$(TARGET) $(NUMIMAGES)
 
+# to run the whole pipeline
 app: playground.cpp distanceutils.cpp featureutils.cpp utils.cpp hog.cpp
 	$(CC) $^ -o $(BINDIR)/playground $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
 	$(BINDIR)/playground
 
-# app: imgDisplay.cpp filter.cpp faceDetect.cpp
-# 	$(CC) $^ -o $(BINDIR)/$(TASK) $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
-# 	$(BINDIR)/$(TASK)
-
-
-# app: switchboard.cpp filter.cpp
-# 	$(CC) $^ -o $(BINDIR)/$(TASK) $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
-# 	$(BINDIR)/$(TASK)
-
-# app: timeBlur.cpp filter.cpp faceDetect.cpp
-# 	$(CC) $^ -o $(BINDIR)/timeBlurr $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
-# 	$(BINDIR)/timeBlurr ../data/cathedral.jpeg 
-
+# to run the whole pipeline
+# app: makeHist.cpp
+# 	$(CC) $^ -o $(BINDIR)/makeHist $(LIBS) -I../include -DENABLE_PRECOMPILED_HEADERS=OFF
+# 	$(BINDIR)/makeHist /app/data/sidewalk.jpg

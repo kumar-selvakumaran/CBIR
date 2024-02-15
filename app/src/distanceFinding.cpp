@@ -1,3 +1,9 @@
+/**
+ * Names : Kumar Selvakumaran, Neel Adke,
+ * date : 2/13/2024
+ * the driver file for distance computation and displaying the most similar images
+*/
+
 /*
 This is the feature extraction prograram which takes as in put the  feature 
 extraction method and then creates a database of features,
@@ -30,8 +36,11 @@ int main(int argc, char *argv[]) {
     
     std::string featurePath;
     std::string distanceType;
+    std::string featureType;
     std::string targetPath;
     std::string dataDir{"../data/olympus/olympus/"};
+    std::string stride;
+    bool useStride = false;
     int numImages;
 
 
@@ -40,18 +49,26 @@ int main(int argc, char *argv[]) {
         printf("usage: %s <feature path (string)> <Distance type (string)> <target path (string)> <number of similar images (int)>\n", argv[0]);
         exit(-1);
     }
-
     
     featurePath = argv[1];
     distanceType = argv[2];
-    targetPath = argv[3];
-    numImages = atoi(argv[4]);
+    featureType = argv[3];
+    targetPath = argv[4];
+    numImages = atoi(argv[5]);
 
+    try{
+        stride = argv[4];
+        useStride = true;
+    }
     // get the arguements path
     while(featurePath!=""){
         std::cout << "\n\nREAD THE ARGUEMENTS : \t";
 
-        DistanceFinder dfObject{DistanceFinder(featurePath,  targetPath, distanceType)};
+        if(useStride == true){
+            // it is the only distance metric supported for strided features
+            distanceType = "stridedEuclideanDistance";
+        }
+        DistanceFinder dfObject{DistanceFinder(featurePath,  targetPath, distanceType, featureType)};
 
         std::cout << "\n\nINITIALZIED THE OBJECTS : \t";
         

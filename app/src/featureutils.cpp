@@ -1,5 +1,7 @@
-/*
-This progrogam stores the different feature extraction functions
+/**
+ * Names : Kumar Selvakumaran, Neel Adke,
+ * date : 2/13/2024
+ * Purpose : This file contains the utility classes and functions for feature extraction.
 */
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -7,9 +9,6 @@ This progrogam stores the different feature extraction functions
 #include <opencv2/imgproc.hpp>
 #include <opencv2/core/operations.hpp>
 #include <opencv2/core/types.hpp>
-
-// #include <featureExtraction.h> // YET TO MAKE
-// #include <faceDetect.h>
 
 #include <cstdio>
 #include <cstring>
@@ -26,6 +25,12 @@ This progrogam stores the different feature extraction functions
 #include<hog.h>
 
 
+/**
+ * The function checks if a directory can be opened and if a file can be created and opened for
+ * writing.
+ * 
+ * @return a boolean value.
+ */
 bool FeatureExtractor::checkPaths(){
     DIR *dirp;
     dirp = opendir(imgdbdir.c_str());
@@ -46,7 +51,21 @@ bool FeatureExtractor::checkPaths(){
     return true;
      
 }
-
+/**
+ * The FeatureExtractor constructor initializes the object with input and output directories, a feature
+ * method key, and a flag for using strided features. The feature method key is used to initialize a feau
+ * 
+ * @param inDir The input directory where the images are located.
+ * @param outPath The 'outPath' parameter is a string that represents the path where the output CSV
+ * file will be saved.
+ * @param featureMethodKey The 'featureMethodKey' parameter is a string that represents the key or
+ * identifier for the feature extraction method to be used. It is used to retrieve the appropriate
+ * feature extraction method from the 'getFeatureMethod' function.
+ * @param useStridedFeatures A boolean flag indicating whether to use strided features or not.
+ * 
+ * @return If the 'status' variable is 'false', then nothing is being returned. If the 'status'
+ * variable is 'true', then nothing is being returned either.
+ */
 FeatureExtractor::FeatureExtractor(
     std::string inDir,
     std::string outPath,
@@ -66,6 +85,15 @@ FeatureExtractor::FeatureExtractor(
         return;
 }
 
+/**
+ * The computeFeatures function reads images from a directory, computes their feature vectors using a
+ * the feaature extractor specified by the feaure method key passed to the constructor, and stores the 
+ * feature vectors in a CSV file. It also uses a strided feature extraction if prompted. If each image has
+ * multiple features, then they are written on the like corresponding to that particular image and are 
+ * seperated by a <SEP>.
+ * 
+ * @return a boolean value, which is always true.
+ */
 bool FeatureExtractor::computeFeatures(){
 
     std::string buffer;
@@ -85,42 +113,31 @@ bool FeatureExtractor::computeFeatures(){
     std::ofstream outputCsv(csvOutPath.c_str());
 
     while( (dp = readdir(dirp)) != NULL ) {
-        // check if the file is an image
         if( strstr(dp->d_name, ".jpg") ||
         strstr(dp->d_name, ".png") ||
         strstr(dp->d_name, ".ppm") ||
         strstr(dp->d_name, ".tif") ) {
-            // build the overall filename
+
             buffer = imgdbdir;
-            // std::cout<< " \n " << buffer << "\n" ;
             buffer += dp->d_name;
 
-            //#################################################
             if(progress %10 ==0){
                 std::cout<< " \n full buffer " << buffer << "\n";
             } 
             progress++;
-            //#################################################
 
-            //read the image
             cv::Mat dbim = cv::imread(buffer, cv::IMREAD_COLOR);
-            // cv::Mat dbim{100, 100, CV_32FC3, cv::Scalar(1,1,1)};
 
-            //compute the feature vector
             std::vector<std::vector<double>> features;
 
             if (useStridedFeatures == false){
                 features = featureComputer(dbim);
             }
-            //####################----SLIDING APPLIER START----##############
             else if(useStridedFeatures == true){
                 int kernelSize = dbim.size().width / 3;
                 features = slidingExtraction(dbim, featureComputer, kernelSize);
             }
-            //####################----SLIDING APPLIER END----##############
             
-            //store feature in the feature db
-
             outputCsv << buffer << "\n";
             
             for(size_t i = 0; i < features.size() ; i++) {
@@ -140,13 +157,6 @@ bool FeatureExtractor::computeFeatures(){
             }
             
             outputCsv << "\n";
-
-            // cv::namedWindow("testim", 1);
-            // cv::imshow("testim", testim); 
-            // cv::waitKey(0);
-            //####################
-            // featureMap[buffer] = features;
-            //#####################
         }
     }
 
@@ -157,11 +167,16 @@ bool FeatureExtractor::computeFeatures(){
     return true;
 }
 
-/*
-Test functions to check passing function pointers as parameters in
-constructor.
-*/
-
+/**
+ * The function "getFeatureMethod" returns a custom datatype which is function pointer which is used as a 
+ * template for all feature extraction functions.
+if the key is not recognized, it returns the baseline feature method.
+ * 
+ * @param featureMethodKey The parameter 'featureMethodKey' is a string that represents the key or name
+ * of a feature method.
+ * 
+ * @return a pointer of featureMethod object.
+ */
 featureMethod getFeatureMethod(std::string featureMethodKey){
     featureMethod featureComputer;
     if(featureMethodKey == "Baseline"){
@@ -184,10 +199,22 @@ featureMethod getFeatureMethod(std::string featureMethodKey){
     return featureComputer;
 }
 
+
+
+/**
+ * Task 1:
+ * 
+ * The function "baselineFeatures7x7" extracts features from the middle 7x7 region of the input image.
+ * 
+ * @param src The parameter 'src' is the input image from which features are to be extracted. It should 
+ * be of type 'cv::Mat'.
+ * 
+ * @return a vector of vectors of type double containing the extracted features. Each inner vector 
+ * represents a row of features.
+ */
 std::vector<std::vector<double>> baselineFeatures7x7(cv::Mat &src){
 
     src.convertTo(src, CV_32FC3);
-    // cv::Mat testim(100, 100, CV_32FC3, cv::Scalar(1, 1, 1));
 
     int middleRowStart = (src.rows/2) - 3;
     int middleColStart = (src.cols/2) - 3;
@@ -207,28 +234,44 @@ std::vector<std::vector<double>> baselineFeatures7x7(cv::Mat &src){
     return features;
 }
 
+
+/**
+ * The function "histFeature" computes the histogram features from the input image.
+ * 
+ * @param src The parameter 'src' is the input image from which histogram features are computed. It 
+ * should be of type 'cv::Mat'.
+ * 
+ * @return a vector of vectors of type double containing the computed histogram features. Each inner 
+ * vector represents a row of histogram features.
+ */
 std::vector<std::vector<double>> histFeature(cv::Mat &src){
 
     cv::Mat hist;
 
-    hist = makeHist(src, 8);    
+    hist = makeHist(src, 16);    
     
     std::vector<std::vector<double>> features;
     features.push_back(hist.reshape(1,1));
 
-    // std::cout <<"\n RETURNING HISTOGRAM\n";
     return features;
 
 }
 
-/*
-This feature is a super-naive way to identify the kind of landscape.
-It hopes to help compute outdoor images of a similar type. Eg:
-blue sky + greenery, blue sky + infrastucture, yellow-red sky + infrastructure.
-given an indoor image, it returns images of a similar backround
-
-This feaature returns the upper and lower Crop of the image
-*/
+/**
+ * The function "upperLowerCropsHist" extracts features representing the upper and lower crops of 
+ * the input image and returns histograms of these crops.
+ * 
+ * 
+ * This feature is a super-naive way to identify the kind of landscape. It hopes to help compute outdoor
+ * images of a similar type. Eg: blue sky + greenery, blue sky + infrastucture, yellow-red
+ * sky + infrastructure. given an indoor image, it returns images of a similar backround.
+ * 
+ * @param src The parameter 'src' is the input image from which features are to be extracted. It should 
+ * be of type 'cv::Mat'.
+ * 
+ * @return a vector of vectors of type double containing histograms representing the upper and lower 
+ * crops of the input image. Each inner vector represents a row of histogram values.
+ *  */
 std::vector<std::vector<double>> upperLowerCropsHist(cv::Mat &src){
     
     cv::Mat histUpperCrop;
@@ -271,14 +314,26 @@ std::vector<std::vector<double>> upperLowerCropsHist(cv::Mat &src){
 
 }
 
+/**
+ * The function "globalHog" computes the Histogram of Oriented Gradients (HOG) features globally from 
+ * the input image.
+ * 
+ * @param src The parameter 'src' is the input image from which HOG features are to be computed. It 
+ * should be of type 'cv::Mat'.
+ * 
+ * @return a vector of vectors of type double containing the computed HOG features. It returns a single vector,
+ * it is "unsqueezed" to have an extra dimention to ensure uniformity in feature extraction methods.
+ */
 std::vector<std::vector<double>> globalHog(cv::Mat &src){
 
     cv::Mat hist;
 
-    hog hogComputer(5, 160, -160, 3, 5);
+    int chromBins = 8;
+    int orBins = 5;
 
-    hist = hogComputer.computeGlobalHogV1(src);   
-    // hist = hogComputer.computeGlobalHog(src);   
+    hog hogComputer(5, 2, -2, chromBins, orBins);
+
+    hist = hogComputer.computeGlobalHogV1(src);    
     
     std::vector<std::vector<double>> features;
     features.push_back(hist.reshape(1,1));
@@ -286,17 +341,28 @@ std::vector<std::vector<double>> globalHog(cv::Mat &src){
     return features;
 }
 
+/**
+ * The function "globalHogandColour" computes the Histogram of Oriented Gradients (HOG) features 
+ * globally and color histogram features from the input image. The texture features are concatenated
+ * with the colour histogram features to make a single vector.
+ * 
+ * @param src The parameter 'src' is the input image from which HOG and color histogram features are 
+ * to be computed. It should be of type 'cv::Mat'.
+ * 
+ * @return a vector of vectors of type double containing the computed HOG and color histogram features. 
+ * Each inner vector represents a row of features. The first row corresponds to HOG features, and the 
+ * second row corresponds to color histogram features.
+ */
 std::vector<std::vector<double>> globalHogandColour(cv::Mat &src){
     cv::Mat histHog;
     cv::Mat histCol;
 
-    int chromBins = 8;
-    int orBins = 2;
+    int chromBins = 2;
+    int orBins = 5;
 
-    hog hogComputer(5, 160, -160, 3, orBins);
+    hog hogComputer(5, 140, -140, chromBins, orBins);
 
     histHog = hogComputer.computeGlobalHogV1(src);   
-    // hist = hogComputer.computeGlobalHog(src);   
     
     histCol = makeHist(src, chromBins);
 
@@ -308,6 +374,21 @@ std::vector<std::vector<double>> globalHogandColour(cv::Mat &src){
     return features;
 }
 
+/**
+ * The function "readDnnFeatures" reads the DNN features from the CSV file containing paths to images 
+ * and their corresponding features, and writes the paths to another CSV file named "features.csv" located 
+ * in the "../data/" directory. This is done to ensure uniformity, so that it is readable by every distance 
+ * metric function.
+ * 
+ * This function assumes that the input CSV file containing features is formatted as follows:
+ * - Each line contains a comma-separated list of values.
+ * - The first value in each line is the filename of an image.
+ * - The remaining values represent the features extracted from that image.
+ * 
+ * The output CSV file "features.csv" contains the paths to the images read from the input CSV file.
+ *
+ * This function does not return any value.
+ */
 void readDnnFeatures(){
     std::string buffer;
     int i;
@@ -355,6 +436,22 @@ void readDnnFeatures(){
     }
 }
 
+/**
+ * The function "slidingExtraction" performs sliding window feature extraction on the input image.
+ * There is not overlap between success windows, there is no padding used. if the window is less than
+ * the kernel's dimentions then the remain part of the image is taken as it is, to compute the features.
+ * 
+ * @param src The parameter 'src' is the input image on which sliding window feature extraction is 
+ * performed. It should be of type 'cv::Mat'.
+ * 
+ * @param featureSlide The parameter 'featureSlide' is a function pointer representing the feature 
+ * extraction method to be applied to each sliding window.
+ * 
+ * @param kernelSize The parameter 'kernelSize' specifies the size of the sliding window kernel.
+ * 
+ * @return a vector of vectors of type double containing the extracted features. Each inner vector 
+ * represents a set of features extracted from a sliding window region of the input image.
+ */
 std::vector<std::vector<double>> slidingExtraction (cv::Mat &src, featureMethod featureSlide, int kernelSize){
     cv::Mat imCrop;
     std::vector<std::vector<double>> features;
@@ -382,22 +479,7 @@ std::vector<std::vector<double>> slidingExtraction (cv::Mat &src, featureMethod 
                 features.push_back(cropFeatures[i]);
              }   
 
-             //#############
-            //  displayImage(imCrop);
-             //#############
          }
     }
     return features;
 }
-
-
-// std::vector<std::vector<double>> slidingExtraction841 (cv::Mat &src, featureMethod){
-//     std::cout << "\n\nFUNCTION CALL WORKS SLIDING EXTRACTION\n\n";
-//     std::vector<std::vector<double>> features;
-    
-//     cv::Rect roi(100, 100, 200, 200);
-//     src(roi).copyTo(temp);
-
-    
-//     return features;
-// }
